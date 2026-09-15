@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team-Personas und Standard-Setups — m365-toolbox</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<style>
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+  .card{
+    text-align:left;font:inherit;cursor:pointer;background:#fff;
+    border:1.5px solid var(--line-strong);border-radius:3px;padding:20px;
+    transition:background .12s,border-color .12s;
+  }
+  .card:hover{background:var(--mint-light);border-color:var(--mint)}
+  .card:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+  .card h3{font-size:17.5px;font-weight:600;margin-bottom:6px;letter-spacing:-.01em}
+  .card p{font-size:13.5px;color:var(--ink-2);line-height:1.45}
+
+  .sheet h2{font-size:clamp(24px,3.4vw,32px);font-weight:600;letter-spacing:-.015em;margin-bottom:8px}
+  .sheet .tell{
+    font-size:16.5px;color:var(--ink-2);max-width:60ch;margin-bottom:28px;
+    border-left:3px solid var(--mint);padding:4px 0 4px 14px;
+  }
+  .field{border-top:1px solid var(--line);padding:16px 0;display:grid;
+         grid-template-columns:190px 1fr;gap:20px;align-items:start}
+  .field:last-of-type{border-bottom:1px solid var(--line)}
+  .field dt{font-size:13px;font-weight:600;color:var(--ink-2);padding-top:2px}
+  .field dd{font-size:15.5px}
+  .field dd ul{list-style:none}
+  .field dd li{padding:3px 0 3px 18px;position:relative}
+  .field dd li:before{content:"";position:absolute;left:0;top:13px;width:8px;height:2px;background:var(--mint)}
+  .field dd code{
+    font-family:Consolas,"SF Mono",monospace;font-size:14px;
+    background:var(--mint-light);padding:2px 6px;border-radius:2px;
+  }
+  .trap{
+    margin-top:24px;border-left:3px solid var(--red);padding:6px 0 6px 14px;
+    max-width:62ch;
+  }
+  .trap b{display:block;font-size:13px;color:var(--red);margin-bottom:4px}
+  .trap span{font-size:15.5px;color:var(--ink-2)}
+  .copied{font-size:13.5px;color:var(--ink-2);margin-left:4px}
+  @media(max-width:620px){.field{grid-template-columns:1fr;gap:4px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="../">&#8592; m365-toolbox</a>
+
+<header>
+  <span class="kicker">Universität Basel · M365 Community</span>
+  <h1>Team-Personas</h1>
+  <p>Sechs Team-Typen, die an der Universität immer wieder vorkommen — jeweils mit einem
+     Standard-Setup, das sich bewährt hat. Als Ausgangspunkt gedacht, nicht als Vorschrift.</p>
+</header>
+
+<section class="panel" id="panel">
+  <div id="stage"></div>
+</section>
+
+<footer>
+  <span>Universität Basel · M365-Schulungsreihe</span>
+  <span>Werkzeug 3 von 3</span>
+</footer>
+</div>
+
+<script>
+const P = [
+  {
+    id:'projekt',
+    name:'Projektteam',
+    teaser:'Befristetes Vorhaben mit Anfang, Ende und einem Ergebnis.',
+    tell:'Sie erkennen es daran, dass jemand sagen kann, woran man merkt, dass das Projekt fertig ist.',
+    typ:'Privates Team. Mitgliedschaft folgt der Projektrolle, nicht der Organisationseinheit.',
+    name_conv:'<code>PRJ-[Kürzel Einheit]-[Projektname]</code><br>Beispiel: <code>PRJ-OC-Intranet-Relaunch</code>',
+    channels:[
+      'Allgemein — Entscheide und Ankündigungen, nichts sonst',
+      'Arbeit — das laufende Tagesgeschäft des Projekts',
+      'Material — Dokumente, die bleiben: Konzept, Offerten, Abnahmen'
+    ],
+    tabs:['Planner für Aufgaben','OneNote für Sitzungsnotizen','Link auf die Projektablage, falls es eine ausserhalb gibt'],
+    rollen:'Projektleitung plus eine Stellvertretung als Besitzer:innen. Alle anderen Mitglieder.',
+    lifecycle:'Ablaufdatum auf das geplante Projektende plus drei Monate. Danach archivieren, nicht löschen.',
+    daten:'Normale Projektdaten unkritisch. Personendaten aus Bewerbungs- oder Evaluationsverfahren gehören nicht in ein Projektteam.',
+    trap:'Das Projekt endet, das Team bleibt. Nach zwei Jahren ist es ein Friedhof mit vier Mitgliedern, in dem niemand mehr weiss, was gilt. Das Ablaufdatum beim Anlegen zu setzen kostet dreissig Sekunden und erspart genau das.'
+  },
+  {
+    id:'gremium',
+    name:'Gremium / Kommission',
+    teaser:'Tagt regelmässig, hat Mitglieder qua Amt, produziert Protokolle.',
+    tell:'Sie erkennen es daran, dass es eine Geschäftsordnung gibt oder geben müsste — und dass Mitglieder wechseln, die Aufgabe aber bleibt.',
+    typ:'Privates Team. Zugriff strikt auf die aktuellen Mitglieder begrenzt.',
+    name_conv:'<code>GRE-[Name des Gremiums]</code><br>Beispiel: <code>GRE-Bibliothekskommission</code>',
+    channels:[
+      'Allgemein — Einladungen, Traktanden, Beschlüsse',
+      'Sitzungsunterlagen — pro Sitzung ein Ordner mit Datum voran',
+      'Archiv — abgeschlossene Geschäfte'
+    ],
+    tabs:['OneNote als laufendes Beschlussprotokoll','Registerkarte auf den Ordner der nächsten Sitzung'],
+    rollen:'Vorsitz und Sekretariat als Besitzer:innen. Das Sekretariat ist hier wichtiger als der Vorsitz — es bleibt länger.',
+    lifecycle:'Kein Ablaufdatum, aber eine jährliche Mitgliederprüfung. Ausgeschiedene Mitglieder aktiv entfernen.',
+    daten:'Protokolle können Personendaten enthalten (Berufungen, Anstellungen, Beschwerden). Solche Geschäfte in einen eigenen privaten Channel mit engerem Kreis.',
+    trap:'Niemand entfernt ausgeschiedene Mitglieder. Nach vier Jahren lesen ehemalige Mitglieder immer noch alle Protokolle mit. Das fällt erst auf, wenn es unangenehm wird — darum die jährliche Prüfung im Kalender, nicht im Vorsatz.'
+  },
+  {
+    id:'oe',
+    name:'Organisationseinheit',
+    teaser:'Abteilung, Institut, Bereich. Existiert, solange es die Einheit gibt.',
+    tell:'Sie erkennen es daran, dass die Mitgliedschaft aus dem Organigramm folgt und nicht aus einer Aufgabe.',
+    typ:'Privates Team, Mitgliedschaft entlang der Anstellung. Wo möglich über eine bestehende Gruppe steuern statt von Hand.',
+    name_conv:'<code>[Kürzel Einheit]-Team</code><br>Beispiel: <code>OC-Team</code>',
+    channels:[
+      'Allgemein — Information an alle, wenig Verkehr',
+      'Austausch — das informelle, tägliche Miteinander',
+      'Je ein Channel pro Daueraufgabe der Einheit, nicht pro Person'
+    ],
+    tabs:['Link auf die Ablage der Einheit','Abwesenheits- oder Präsenzübersicht, falls genutzt'],
+    rollen:'Leitung plus eine zweite Person aus dem Team. Nie die Leitung allein.',
+    lifecycle:'Dauerhaft. Dafür jährlich prüfen, ob die Channels noch der Arbeit entsprechen — sie veralten schneller als das Team.',
+    daten:'Personaldaten der Mitarbeitenden gehören nicht hierher, auch nicht in einen privaten Channel. Dafür gibt es eigene Wege.',
+    trap:'Ein Channel pro Person („Channel Sarah", „Channel Markus"). Das fühlt sich ordentlich an und macht das Team beim nächsten Personalwechsel unbrauchbar. Channels bilden Aufgaben ab, nicht Menschen.'
+  },
+  {
+    id:'lehre',
+    name:'Lehrveranstaltung',
+    teaser:'Ein Semester, wechselnde Studierende, wiederkehrende Struktur.',
+    tell:'Sie erkennen es daran, dass dieselbe Veranstaltung nächstes Jahr wieder stattfindet — mit anderen Teilnehmenden.',
+    typ:'Team der Klasse, sofern verfügbar. Sonst privates Team. Prüfen Sie zuerst, ob die Lernplattform der Universität der richtigere Ort ist.',
+    name_conv:'<code>[Semester]-[Veranstaltungsnummer]-[Kurztitel]</code><br>Beispiel: <code>HS26-12345-Einf-Statistik</code>',
+    channels:[
+      'Allgemein — Organisatorisches, Termine, Änderungen',
+      'Material — Folien und Literatur, nur lesend für Studierende',
+      'Fragen — der Ort für alles, was sonst per E-Mail käme'
+    ],
+    tabs:['OneNote-Kursnotizbuch, falls mit Gruppenarbeiten gearbeitet wird','Link auf die Lernplattform'],
+    rollen:'Dozierende als Besitzer:innen, Studierende als Mitglieder mit eingeschränkten Rechten.',
+    lifecycle:'Ablaufdatum auf Semesterende plus sechs Monate. Das Semester ist im Namen — nutzen Sie nächstes Jahr ein neues Team, nicht dasselbe.',
+    daten:'Noten, Prüfungsleistungen und Rückmeldungen zu einzelnen Studierenden gehören nicht ins Team. Dafür ist die Prüfungsverwaltung da.',
+    trap:'Das Team wird jedes Jahr weiterverwendet, um das Material nicht neu hochladen zu müssen. Dann sehen die neuen Studierenden die Diskussionen der letzten drei Jahrgänge. Material kopieren ist die Mühe wert.'
+  },
+  {
+    id:'forschung',
+    name:'Forschungsprojekt',
+    teaser:'Läuft jahrelang, hat externe Beteiligte und oft heikle Daten.',
+    tell:'Sie erkennen es daran, dass Menschen mitarbeiten, die kein Konto der Universität haben.',
+    typ:'Privates Team mit Gastzugängen. Klären Sie vor dem Anlegen, ob Gastzugriff für dieses Projekt überhaupt zulässig ist.',
+    name_conv:'<code>FOR-[Kürzel Institut]-[Projektakronym]</code><br>Beispiel: <code>FOR-DMI-NANOSENSE</code>',
+    channels:[
+      'Allgemein — Koordination des Gesamtprojekts',
+      'Publikationen — Manuskripte und Einreichungen',
+      'Ein privater Channel für alles, was Gäste nicht sehen dürfen'
+    ],
+    tabs:['Link auf die Datenablage — Forschungsdaten gehören nicht in die Teams-Dateiablage','Planner für Meilensteine und Abgabefristen'],
+    rollen:'Projektleitung plus eine Person aus dem Institut, die bleibt, wenn die Projektstelle ausläuft.',
+    lifecycle:'Ablaufdatum auf das Förderende. Vor dem Ablauf klären, was zur Archivierung gehört — hier gibt es meist Auflagen des Fördergebers.',
+    daten:'Der kritische Punkt. Besonders schützenswerte Personendaten — Gesundheitsdaten, biometrische Daten, Daten aus Studien mit Menschen — gehören nach geltender Praxis nicht ungeprüft in die Cloud. Klären Sie das mit der Datenschutzstelle, bevor Daten hochgeladen werden, nicht danach.',
+    trap:'Gastzugänge werden beim Anlegen grosszügig vergeben und nie wieder angeschaut. Nach fünf Jahren hat ein Team Gäste von drei ehemaligen Partnerinstitutionen. Halbjährliche Prüfung der Gastliste, und Gäste immer mit Ablaufdatum denken.'
+  },
+  {
+    id:'community',
+    name:'Community / Netzwerk',
+    teaser:'Freiwillige Teilnahme, offenes Thema, viele Mitlesende.',
+    tell:'Sie erkennen es daran, dass niemand verpflichtet ist mitzumachen — und dass es trotzdem funktionieren soll.',
+    typ:'Öffentliches Team, damit Interessierte selbst beitreten können. Das ist der einzige Typ hier, bei dem öffentlich der Normalfall ist.',
+    name_conv:'<code>COM-[Thema]</code><br>Beispiel: <code>COM-M365-Anwendende</code>',
+    channels:[
+      'Allgemein — Willkommen, Spielregeln, Ankündigungen',
+      'Fragen und Antworten — der eigentliche Wert der Community',
+      'Höchstens ein Themenchannel zum Start, weitere erst bei echtem Bedarf'
+    ],
+    tabs:['Angehefteter Beitrag mit Zweck und Umgangston','Sammlung der häufigsten Fragen'],
+    rollen:'Zwei bis drei aktive Besitzer:innen. Eine Community mit einer einzigen verantwortlichen Person schläft ein, sobald diese in die Ferien geht.',
+    lifecycle:'Dauerhaft, aber ehrlich prüfen: Wenn sechs Monate lang nichts passiert, ist es keine Community mehr. Dann bewusst schliessen statt still verrotten lassen.',
+    daten:'Öffentliches Team heisst: alle Angehörigen der Universität können beitreten und mitlesen. Nichts hineinstellen, was nicht mindestens intern öffentlich sein darf.',
+    trap:'Zum Start werden acht Themenchannels angelegt, damit es strukturiert aussieht. In sieben davon passiert nie etwas, und das leere Team signalisiert allen Neuen, dass hier nichts los ist. Mit zwei Channels starten.'
+  }
+];
+
+const stage=document.getElementById('stage');
+
+function grid(){
+  stage.innerHTML='';
+  const g=document.createElement('div'); g.className='grid';
+  P.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='card'; b.type='button';
+    b.innerHTML='<h3>'+p.name+'</h3><p>'+p.teaser+'</p>';
+    b.addEventListener('click',()=>sheet(p));
+    g.appendChild(b);
+  });
+  stage.appendChild(g);
+}
+
+function field(dl,label,html){
+  const d=document.createElement('div'); d.className='field';
+  const dt=document.createElement('dt'); dt.textContent=label;
+  const dd=document.createElement('dd'); dd.innerHTML=html;
+  d.append(dt,dd); dl.appendChild(d);
+}
+function list(arr){ return '<ul>'+arr.map(x=>'<li>'+x+'</li>').join('')+'</ul>'; }
+
+function sheet(p){
+  stage.innerHTML='';
+  const d=document.createElement('div'); d.className='sheet';
+  const h=document.createElement('h2'); h.textContent=p.name;
+  const t=document.createElement('p'); t.className='tell'; t.textContent=p.tell;
+  d.append(h,t);
+
+  const dl=document.createElement('dl');
+  field(dl,'Team-Typ und Zugriff',p.typ);
+  field(dl,'Namenskonvention',p.name_conv);
+  field(dl,'Standard-Channels',list(p.channels));
+  field(dl,'Registerkarten',list(p.tabs));
+  field(dl,'Rollen',p.rollen);
+  field(dl,'Lebenszyklus',p.lifecycle);
+  field(dl,'Datenschutz',p.daten);
+  d.appendChild(dl);
+
+  const tr=document.createElement('div'); tr.className='trap';
+  tr.innerHTML='<b>WAS TYPISCHERWEISE SCHIEFGEHT</b><span>'+p.trap+'</span>';
+  d.appendChild(tr);
+
+  const nav=document.createElement('div'); nav.className='nav no-print';
+  const back=document.createElement('button');
+  back.className='link'; back.type='button'; back.textContent='Alle Personas';
+  back.addEventListener('click',()=>{grid();window.scrollTo({top:0,behavior:'smooth'});});
+  const cp=document.createElement('button');
+  cp.className='btn ghost'; cp.type='button'; cp.textContent='Setup als Text kopieren';
+  const note=document.createElement('span'); note.className='copied';
+  cp.addEventListener('click',()=>{
+    const txt=asText(p);
+    navigator.clipboard.writeText(txt)
+      .then(()=>{note.textContent='kopiert';setTimeout(()=>note.textContent='',2500);})
+      .catch(()=>{note.textContent='Kopieren nicht möglich — bitte drucken';});
+  });
+  const pr=document.createElement('button');
+  pr.className='btn ghost'; pr.type='button'; pr.textContent='Drucken';
+  pr.addEventListener('click',()=>window.print());
+  nav.append(back,cp,note,pr);
+  d.appendChild(nav);
+  stage.appendChild(d);
+}
+
+function asText(p){
+  const strip=s=>s.replace(/<br\s*\/?>/g,' ').replace(/<[^>]+>/g,'');
+  return [
+    'STANDARD-SETUP — '+p.name,
+    '',
+    'Erkennungsmerkmal: '+p.tell,
+    'Team-Typ: '+strip(p.typ),
+    'Namenskonvention: '+strip(p.name_conv),
+    '',
+    'Channels:',
+    ...p.channels.map(c=>'  - '+c),
+    '',
+    'Registerkarten:',
+    ...p.tabs.map(c=>'  - '+c),
+    '',
+    'Rollen: '+p.rollen,
+    'Lebenszyklus: '+p.lifecycle,
+    'Datenschutz: '+p.daten,
+    '',
+    'Typischer Fehler: '+p.trap
+  ].join('\n');
+}
+
+grid();
+</script>
+</body>
+</html>

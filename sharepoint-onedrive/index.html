@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SharePoint oder OneDrive? — m365-toolbox</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<style>
+  .lead{
+    font-size:clamp(20px,2.6vw,26px);font-weight:600;line-height:1.35;
+    max-width:24ch;margin-bottom:10px;
+  }
+  .lead b{color:var(--red);font-weight:600}
+  .progress{display:flex;gap:5px;margin-bottom:24px}
+  .progress i{width:26px;height:4px;border-radius:2px;background:var(--line)}
+  .progress i.done{background:var(--mint)}
+  .progress i.wrong{background:var(--red)}
+  .progress i.now{background:var(--ink)}
+  .counter{font-size:12.5px;color:var(--ink-2);margin-bottom:10px}
+  .scene{font-size:clamp(19px,2.5vw,25px);font-weight:600;line-height:1.3;
+         max-width:30ch;margin-bottom:8px;letter-spacing:-.01em}
+  .scene-sub{color:var(--ink-2);font-size:15px;max-width:54ch;margin-bottom:24px}
+  .pick{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px}
+  .pick button{
+    font:inherit;font-size:17px;font-weight:600;cursor:pointer;color:var(--ink);
+    background:#fff;border:1.5px solid var(--line-strong);border-radius:3px;
+    padding:22px 16px;transition:background .12s,border-color .12s;
+  }
+  .pick button:hover{background:var(--mint-light);border-color:var(--mint)}
+  .pick button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+  .pick button span{display:block;font-weight:400;font-size:13px;color:var(--ink-2);margin-top:4px}
+
+  .verdict{max-width:62ch}
+  .verdict .flag{
+    display:inline-block;font-size:13.5px;font-weight:600;padding:5px 12px;
+    border-radius:2px;margin-bottom:14px;
+  }
+  .flag.right{background:var(--mint-light);border:1.5px solid var(--mint);color:var(--ink)}
+  .flag.wrong{background:#fff;border:1.5px solid var(--red);color:var(--red)}
+  .verdict h3{font-size:clamp(21px,2.8vw,27px);font-weight:600;letter-spacing:-.015em;margin-bottom:12px}
+  .verdict p{font-size:16.5px;color:var(--ink-2);margin-bottom:14px}
+  .verdict .extra{
+    border-left:3px solid var(--mint);padding:8px 0 8px 14px;
+    font-size:15.5px;color:var(--ink);background:#fff;
+  }
+
+  .score{font-size:clamp(30px,5vw,46px);font-weight:600;letter-spacing:-.02em;margin-bottom:6px}
+  .score-sub{color:var(--ink-2);font-size:16px;margin-bottom:28px}
+  .rule{
+    border:1.5px solid var(--ink);border-radius:4px;padding:26px 28px;
+    max-width:640px;margin-bottom:24px;
+  }
+  .rule h4{font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:12px}
+  .rule .big{font-size:clamp(19px,2.6vw,24px);font-weight:600;line-height:1.35;margin-bottom:18px}
+  .rule ul{list-style:none}
+  .rule li{font-size:15.5px;padding:8px 0 8px 22px;position:relative;border-top:1px solid var(--line)}
+  .rule li:before{content:"";position:absolute;left:0;top:16px;width:9px;height:2px;background:var(--mint)}
+  .missed{font-size:14.5px;color:var(--ink-2);max-width:62ch;margin-bottom:20px}
+  .missed b{color:var(--ink);font-weight:600}
+  @media(max-width:520px){.pick{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="../">&#8592; m365-toolbox</a>
+
+<header>
+  <span class="kicker">Universität Basel · M365 Community</span>
+  <h1>SharePoint oder OneDrive?</h1>
+  <p>Acht Situationen aus dem Alltag. Entscheiden Sie jeweils, wo die Datei hingehört.
+     Es geht nicht ums Rechthaben — es geht um die eine Unterscheidung, die dahintersteckt.</p>
+</header>
+
+<section class="panel">
+  <div class="progress" id="prog" aria-hidden="true"></div>
+  <div id="stage"></div>
+</section>
+
+<footer>
+  <span>Universität Basel · M365-Schulungsreihe</span>
+  <span>Werkzeug 2 von 3</span>
+</footer>
+</div>
+
+<script>
+/* Die eine Idee: OneDrive gehört der Person, SharePoint gehört dem Team.
+   Jede Szene prüft genau diese Unterscheidung — nichts anderes. */
+
+const SZENEN = [
+  {
+    scene:'Sie schreiben einen ersten Entwurf für ein Konzept, den noch niemand sehen soll.',
+    sub:'Rohfassung, unfertig, wird sich noch dreimal ändern.',
+    answer:'onedrive',
+    why:'Der Entwurf gehört Ihnen, solange er unfertig ist. Er hat noch keinen gemeinsamen Zweck, also braucht er auch keinen gemeinsamen Ort. Sobald Sie ihn zur Diskussion stellen, ziehen Sie ihn um.'
+  },
+  {
+    scene:'Sie legen das Protokoll einer Kommissionssitzung ab.',
+    sub:'Die Kommission tagt vier Mal im Jahr, die Mitglieder wechseln.',
+    answer:'sharepoint',
+    why:'Ein Protokoll ist ein Ergebnis des Gremiums, nicht Ihres. Es muss auch dann auffindbar sein, wenn Sie die Kommission verlassen — und genau das kann OneDrive nicht leisten.'
+  },
+  {
+    scene:'Sie schicken einer Kollegin eine Datei im Teams-Chat.',
+    sub:'Einfach in den Chat gezogen, wie immer.',
+    answer:'onedrive',
+    key:true,
+    why:'Überraschend für viele: Dateien aus einem Teams-Chat landen in Ihrem OneDrive, im Ordner „Microsoft Teams Chat Files". Teams zeigt Ihnen das nicht an.',
+    extra:'Das ist der wichtigste Punkt dieses Werkzeugs. Gleiche App, gleiche Geste — und trotzdem ein völlig anderer Besitzer. Verlassen Sie die Universität, wird Ihr OneDrive nach einer Frist gelöscht. Die Datei im Chat ist dann weg, auch für die Kollegin.'
+  },
+  {
+    scene:'Sie laden dieselbe Datei stattdessen in einen Teams-Channel unter „Dateien" hoch.',
+    sub:'Gleiche Datei, gleiche Personen, anderer Ort in derselben App.',
+    answer:'sharepoint',
+    why:'Jeder Channel hat einen Ordner in der SharePoint-Seite des Teams. Die Datei gehört jetzt dem Team: sie bleibt, wenn Sie gehen, und alle Mitglieder haben automatisch Zugriff, ohne dass jemand teilen muss.'
+  },
+  {
+    scene:'Die Vorlage für Stellenausschreibungen Ihrer Abteilung.',
+    sub:'Wird von mehreren Personen genutzt, ein paar Mal im Jahr.',
+    answer:'sharepoint',
+    why:'Eine Vorlage ist geteiltes Arbeitsmaterial der Einheit. Liegt sie in einem persönlichen OneDrive, kursieren nach zwei Jahren vier Versionen davon per E-Mail.'
+  },
+  {
+    scene:'Ihre persönlichen Notizen aus einer Weiterbildung.',
+    sub:'Nur für Sie, vielleicht schauen Sie nie wieder rein.',
+    answer:'onedrive',
+    why:'Nicht alles muss geteilt werden. OneDrive ist der richtige Ort für Material, das an Ihre Person gebunden ist — und es ist ausdrücklich in Ordnung, es dort zu lassen.'
+  },
+  {
+    scene:'Die Budgettabelle, an der drei Personen gleichzeitig arbeiten und die auch nächstes Jahr noch gebraucht wird.',
+    sub:'Jemand hat sie letztes Jahr angelegt, diese Person ist inzwischen weg.',
+    answer:'sharepoint',
+    why:'Gemeinsam bearbeitet, dauerhaft gebraucht, personenunabhängig — drei Mal SharePoint. Dass die Tabelle nach dem Weggang der Urheberin noch da ist, ist kein Glück, sondern eine Frage des Ablageorts.'
+  },
+  {
+    scene:'Ein Scan, den Sie kurz zwischenlagern, um ihn gleich weiterzuverarbeiten.',
+    sub:'In zehn Minuten ist er woanders.',
+    answer:'onedrive',
+    why:'Zwischenstände brauchen keinen gemeinsamen Ort. Wichtig ist nur, dass er auch wirklich weiterwandert — der häufigste Fehler ist der Zwischenstand, der zehn Jahre liegen bleibt.'
+  }
+];
+
+const LBL={onedrive:'OneDrive', sharepoint:'SharePoint'};
+
+let i=0, results=[], phase='q';
+const stage=document.getElementById('stage');
+const prog=document.getElementById('prog');
+
+function drawProgress(){
+  prog.innerHTML='';
+  SZENEN.forEach((_,n)=>{
+    const b=document.createElement('i');
+    if(results[n]===true) b.className='done';
+    else if(results[n]===false) b.className='wrong';
+    else if(n===i && phase!=='end') b.className='now';
+    prog.appendChild(b);
+  });
+}
+
+function render(){
+  drawProgress();
+  stage.innerHTML='';
+  if(phase==='end') return renderEnd();
+  const s=SZENEN[i];
+
+  if(phase==='q'){
+    const c=document.createElement('div');
+    c.className='counter'; c.textContent='Situation '+(i+1)+' von '+SZENEN.length;
+    const h=document.createElement('div'); h.className='scene'; h.textContent=s.scene;
+    const sub=document.createElement('div'); sub.className='scene-sub'; sub.textContent=s.sub;
+    const pick=document.createElement('div'); pick.className='pick';
+    [['onedrive','gehört der Person'],['sharepoint','gehört dem Team']].forEach(([k,hint])=>{
+      const b=document.createElement('button');
+      b.type='button';
+      b.innerHTML=LBL[k]+'<span>'+hint+'</span>';
+      b.addEventListener('click',()=>{ results[i]=(k===s.answer); phase='a'; render(); });
+      pick.appendChild(b);
+    });
+    stage.append(c,h,sub,pick);
+    return;
+  }
+
+  /* Auflösung */
+  const ok=results[i];
+  const d=document.createElement('div'); d.className='verdict';
+  const f=document.createElement('span');
+  f.className='flag '+(ok?'right':'wrong');
+  f.textContent = ok ? 'Richtig' : 'Knapp daneben';
+  const h=document.createElement('h3'); h.textContent=LBL[s.answer];
+  const p=document.createElement('p'); p.textContent=s.why;
+  d.append(f,h,p);
+  if(s.extra){
+    const e=document.createElement('p'); e.className='extra'; e.textContent=s.extra;
+    d.appendChild(e);
+  }
+  const nav=document.createElement('div'); nav.className='nav no-print';
+  const next=document.createElement('button');
+  next.className='btn'; next.type='button';
+  next.textContent = i===SZENEN.length-1 ? 'Zum Fazit' : 'Weiter';
+  next.addEventListener('click',()=>{
+    if(i===SZENEN.length-1){ phase='end'; } else { i++; phase='q'; }
+    render(); window.scrollTo({top:0,behavior:'smooth'});
+  });
+  nav.appendChild(next);
+  d.appendChild(nav);
+  stage.appendChild(d);
+}
+
+function renderEnd(){
+  const right=results.filter(Boolean).length;
+  const d=document.createElement('div');
+
+  const sc=document.createElement('div'); sc.className='score';
+  sc.textContent=right+' von '+SZENEN.length;
+  const sub=document.createElement('div'); sub.className='score-sub';
+  sub.textContent = right===SZENEN.length
+    ? 'Sauber. Dann ist die Unterscheidung bei Ihnen angekommen.'
+    : 'Der Punktestand ist Nebensache — die Regel darunter nicht.';
+  d.append(sc,sub);
+
+  const missed=results.map((r,n)=>r?null:n).filter(n=>n!==null);
+  if(missed.length){
+    const m=document.createElement('p'); m.className='missed';
+    m.innerHTML='Nochmal anschauen: '+missed.map(n=>'<b>'+(n+1)+'</b>').join(', ')+
+      '. Fast immer steckt dieselbe Frage dahinter — wem gehört die Datei, wenn die Person geht?';
+    d.appendChild(m);
+  }
+
+  const r=document.createElement('div'); r.className='rule';
+  r.innerHTML =
+    '<h4>WENN SIE EINE SACHE MITNEHMEN</h4>'+
+    '<div class="big">OneDrive geht mit der Person. SharePoint bleibt beim Team.</div>'+
+    '<ul>'+
+      '<li>Alles andere — Synchronisierung, Freigabe, Speicherplatz, Versionsverlauf — ist eine Fussnote dazu.</li>'+
+      '<li>Faustregel für den Alltag: Würde es jemanden stören, wenn diese Datei mit Ihrem Konto verschwindet? Dann gehört sie nach SharePoint.</li>'+
+      '<li>Dateien aus dem Teams-<em>Chat</em> liegen in Ihrem OneDrive. Dateien aus einem Teams-<em>Channel</em> liegen in SharePoint. Die Oberfläche sagt Ihnen das nicht.</li>'+
+      '<li>Ein persönlicher Ort ist kein schlechter Ort. Er ist nur der falsche für gemeinsame Arbeit.</li>'+
+    '</ul>';
+  d.appendChild(r);
+
+  const nav=document.createElement('div'); nav.className='nav no-print';
+  const again=document.createElement('button');
+  again.className='btn ghost'; again.type='button'; again.textContent='Nochmal';
+  again.addEventListener('click',()=>{ i=0; results=[]; phase='q'; render(); window.scrollTo({top:0}); });
+  const pr=document.createElement('button');
+  pr.className='btn ghost'; pr.type='button'; pr.textContent='Fazit drucken';
+  pr.addEventListener('click',()=>window.print());
+  const tree=document.createElement('a');
+  tree.className='link'; tree.href='../team-channel-chat/';
+  tree.style.textDecoration='none';
+  tree.textContent='Weiter zu: Team, Channel oder Chat?';
+  nav.append(again,pr,tree);
+  d.appendChild(nav);
+
+  stage.appendChild(d);
+}
+
+render();
+</script>
+</body>
+</html>

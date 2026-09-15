@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team, Channel oder Chat? — Entscheidungshilfe M365</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<style>
+  .trail{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;min-height:26px}
+  .trail span{font-size:12px;color:var(--ink-2);background:var(--mint-light);padding:4px 10px;border-radius:2px}
+  .trail span b{font-weight:600;color:var(--ink)}
+  .q{font-size:clamp(21px,2.8vw,28px);font-weight:600;letter-spacing:-.01em;
+     line-height:1.25;margin-bottom:6px;max-width:22ch}
+  .q-note{color:var(--ink-2);font-size:15px;margin-bottom:22px;max-width:56ch}
+  .opts{display:grid;gap:10px;max-width:640px}
+  .opt{display:block;width:100%;text-align:left;cursor:pointer;font:inherit;font-size:16px;color:var(--ink);
+    background:#fff;border:1.5px solid var(--line-strong);border-radius:3px;padding:15px 18px;
+    transition:background .12s,border-color .12s}
+  .opt:hover{background:var(--mint-light);border-color:var(--mint)}
+  .opt:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+  .opt em{display:block;font-style:normal;font-size:13.5px;color:var(--ink-2);margin-top:3px}
+  .res-tag{display:inline-block;font-size:14px;padding:6px 14px;border-radius:2px;margin-bottom:16px;font-weight:600}
+  .res h3{font-size:clamp(24px,3.4vw,32px);font-weight:600;letter-spacing:-.015em;margin-bottom:12px}
+  .res .why{font-size:17px;color:var(--ink-2);max-width:62ch;margin-bottom:26px}
+  .res h4{font-size:14px;font-weight:600;margin-bottom:10px}
+  .res ul{list-style:none;max-width:62ch;margin-bottom:24px}
+  .res li{padding:9px 0 9px 22px;border-top:1px solid var(--line);position:relative;font-size:15.5px}
+  .res li:before{content:"";position:absolute;left:0;top:17px;width:9px;height:2px;background:var(--mint)}
+  .res li:last-child{border-bottom:1px solid var(--line)}
+  .caution{border-left:3px solid var(--red);padding:4px 0 4px 14px;font-size:14.5px;
+    color:var(--ink-2);max-width:62ch;margin-bottom:8px}
+  .map-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .map-scroll svg{display:block;width:100%;min-width:880px;height:auto}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:18px;font-size:13px;color:var(--ink-2)}
+  .legend i{display:inline-block;width:16px;height:12px;border-radius:2px;margin-right:7px;vertical-align:-1px}
+  @media print{ .map-scroll svg{min-width:0} @page{size:A4 landscape;margin:12mm} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="../">← m365-toolbox</a>
+
+<header>
+  <span class="kicker">Universität Basel · M365 Community</span>
+  <h1>Team, Channel oder Chat?</h1>
+  <p>Beantworten Sie ein paar Fragen und Sie wissen, welche Struktur zu Ihrem Vorhaben passt —
+     und welche Sie sich sparen können.</p>
+</header>
+
+<section class="panel" id="wizard-panel">
+  <div class="trail" id="trail" aria-live="polite"></div>
+  <div id="stage"></div>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <div>
+      <h2>Der ganze Entscheidungsweg</h2>
+      <p>Beide Einstiege, ein gemeinsamer Fragenpfad. Zum Ausdrucken oder Teilen.</p>
+    </div>
+    <div class="btn-row no-print">
+      <button class="btn" id="dl">Als JPG speichern</button>
+      <button class="btn ghost" id="clear-hl">Hervorhebung zurücksetzen</button>
+    </div>
+  </div>
+  <div class="map-scroll" id="map-scroll"></div>
+  <div class="legend" id="legend"></div>
+</section>
+
+<footer>
+  <span>Universität Basel · M365-Schulungsreihe</span>
+  <span>Werkzeug 1 von 3</span>
+</footer>
+</div>
+
+<script>
+/* ============================================================
+   1. GRAPH — single source of truth for wizard AND map
+   ============================================================ */
+const W=172, RW=186, QH=96, RH=88, EH=76;
+const C={1:40,2:240,3:440,4:640,5:840,6:1040,7:1240,8:1440,9:1700};
+
+const N = {
+  start:{kind:'start', x:C[1], y:436, w:W, h:QH,
+    lines:['Neue','Zusammenarbeit','steht an'],
+    q:'Wo stehen Sie gerade?',
+    note:'Beide Wege führen durch dieselben Fragen — der Einstieg entscheidet nur, was wir schon wissen.',
+    opts:[
+      {t:'Neues Vorhaben', s:'Es gibt noch keine passende Struktur', to:'eA'},
+      {t:'In einem bestehenden Team', s:'Das Haus steht, es geht um einen Raum darin', to:'eB'}
+    ]},
+
+  eA:{kind:'entry', x:C[2], y:306, w:W, h:EH,
+    lines:['Neues Vorhaben','— noch keine','Struktur'], auto:'q_dauer', short:'Neues Vorhaben'},
+  eB:{kind:'entry', x:C[2], y:566, w:W, h:EH,
+    lines:['In bestehendem','Team'], auto:'q_dauer', short:'Bestehendes Team'},
+
+  q_dauer:{kind:'q', x:C[3], y:436, w:W, h:QH,
+    lines:['Wie lange läuft','die','Zusammenarbeit?'],
+    q:'Wie lange läuft die Zusammenarbeit?',
+    note:'Kurze Absprachen brauchen keine Struktur — sie brauchen nur ein Fenster.',
+    opts:[
+      {t:'Unter 2 Wochen', s:'Einmalige Frage, kurze Abstimmung', to:'r_chat', set:{dauer:'kurz'}},
+      {t:'2 Wochen bis 6 Monate', s:'Befristetes Projekt mit absehbarem Ende', to:'q_personen', set:{dauer:'befristet'}},
+      {t:'Dauerhaft, über 6 Monate', s:'Arbeitsgruppe, Gremium, laufender Betrieb', to:'q_personen', set:{dauer:'dauerhaft'}}
+    ]},
+
+  q_personen:{kind:'q', x:C[4], y:436, w:W, h:QH,
+    lines:['Wie viele','Personen arbeiten','regelmässig mit?'],
+    q:'Wie viele Personen arbeiten regelmässig mit?',
+    note:'Gemeint sind aktiv Mitwirkende, nicht alle, die mitlesen dürfen.',
+    opts:[
+      {t:'1 bis 2', s:'Zu zweit reicht ein Gespräch', to:'r_chat', set:{groesse:'klein'}},
+      {t:'3 bis 30', s:'Eine Gruppe mit gemeinsamer Aufgabe', to:'q_klar', set:{groesse:'mittel'}},
+      {t:'Über 30', s:'Eine ganze Organisationseinheit oder Community', to:'r_team', set:{groesse:'gross'}}
+    ]},
+
+  q_klar:{kind:'q', x:C[5], y:436, w:W, h:QH,
+    lines:['Ist das Thema','klar abgegrenzt','und benennbar?'],
+    q:'Ist das Thema klar abgegrenzt und benennbar?',
+    note:'Faustregel: Wenn Sie es nicht in drei Wörtern benennen können, ist es noch keine Struktur wert.',
+    opts:[
+      {t:'Ja, der Name steht', s:'Alle Beteiligten würden es gleich beschreiben', to:'q_themen'},
+      {t:'Noch unklar', s:'Umfang und Zuständigkeit sind in Bewegung', to:'r_klaeren'}
+    ]},
+
+  q_themen:{kind:'q', x:C[6], y:436, w:W, h:QH,
+    lines:['Wie viele','eigenständige','Arbeitsbereiche?'],
+    q:'Wie viele eigenständige Arbeitsbereiche gibt es?',
+    note:'Ein Arbeitsbereich ist etwas, das eigene Dateien, eigene Zuständige und eigene Termine hat.',
+    opts:[
+      {t:'Einer', s:'Ein Thema, ein Ablageort', to:'q_passung', set:{bereiche:'einer'}},
+      {t:'Zwei bis drei, eng verwandt', s:'Teilaspekte derselben Sache', to:'q_passung', set:{bereiche:'wenige'}},
+      {t:'Vier oder mehr — oder sehr verschieden', s:'Die Bereiche haben wenig miteinander zu tun', to:'r_team', set:{bereiche:'viele'}}
+    ]},
+
+  q_passung:{kind:'q', x:C[7], y:436, w:W, h:QH,
+    lines:['Gibt es ein Team,','in das das Thema','passt?'],
+    q:'Gibt es ein bestehendes Team, in das das Thema thematisch passt?',
+    note:'„Passt" heisst: dieselben Leute, derselbe Zweck, dieselbe Verantwortung.',
+    opts:[
+      {t:'Ja', s:'Die Mitglieder überschneiden sich weitgehend', to:'q_bestehend'},
+      {t:'Nein, nirgends richtig', s:'Es würde überall als Fremdkörper sitzen', to:'q_gov'}
+    ]},
+
+  q_bestehend:{kind:'q', x:C[8], y:326, w:W, h:QH,
+    lines:['Gibt es dort schon','einen passenden','Channel dafür?'],
+    q:'Gibt es dort schon einen passenden Channel?',
+    note:'Schauen Sie wirklich nach. Der häufigste Governance-Fehler ist der zweite Channel zum selben Thema.',
+    opts:[
+      {t:'Ja, es gibt einen', s:'Thema und Zweck decken sich', to:'r_reuse'},
+      {t:'Nein', s:'Das Thema hätte dort keinen Ort', to:'r_channel'}
+    ]},
+
+  q_gov:{kind:'q', x:C[8], y:596, w:W, h:QH,
+    lines:['Eigenes Budget,','eigene Leitung,','eigene Liste?'],
+    q:'Hat das Vorhaben eigenes Budget, eigene Leitung und eine eigene Mitgliederliste?',
+    note:'Das ist die Trägerschaftsfrage: Wer entscheidet, wer dazugehört, und wer räumt am Ende auf?',
+    opts:[
+      {t:'Ja, alles drei', s:'Eigene Verantwortung, eigene Mittel', to:'r_team'},
+      {t:'Nein oder unklar', s:'Es hängt an einer anderen Einheit', to:'r_klaeren', set:{grund:'traeger'}}
+    ]},
+
+  /* results */
+  r_team:{kind:'r', tone:'team', x:C[9], y:120, w:RW, h:RH, lines:['🏠  Neues Team'],
+    title:'Ein neues Team', tag:'Haus bauen',
+    why:'Das Vorhaben ist gross oder vielfältig genug, dass es eigene Räume braucht — und es hat jemanden, der dafür geradesteht.',
+    steps:[
+      'Zwei Besitzer:innen festlegen, bevor Sie das Team anlegen. Ein Team mit nur einer verantwortlichen Person ist ein Team ohne Nachfolge.',
+      'Name nach der Konvention der Universität vergeben — Einheit, dann Thema. Der Name ist später kaum noch änderbar.',
+      'Mit maximal drei Channels starten. Weitere entstehen aus echtem Bedarf, nicht aus Vorratsplanung.',
+      'Im Channel „Allgemein" in einem angehefteten Beitrag festhalten: Wozu ist dieses Team da, und wozu nicht?',
+      'Ein Überprüfungsdatum setzen — in zwölf Monaten schauen Sie, ob das Team noch lebt.'
+    ],
+    caution:'Ein Team bringt eine SharePoint-Seite, ein Postfach und eine Gruppe mit. Das ist viel Struktur für eine Idee, die noch keine Trägerschaft hat.'},
+
+  r_channel:{kind:'r', tone:'channel', x:C[9], y:300, w:RW, h:RH, lines:['🚪  Neuer Channel'],
+    title:'Ein neuer Channel im bestehenden Team', tag:'Raum einrichten',
+    why:'Das Thema ist klar genug für einen eigenen Ort, aber es braucht kein eigenes Haus — es gehört inhaltlich dorthin, wo es hingeht.',
+    steps:[
+      'Kurz mit den Team-Besitzer:innen absprechen. Channels sind billig zu erstellen und teuer zu pflegen.',
+      'Sprechenden Namen wählen, keine Abkürzung, die in einem Jahr niemand mehr auflöst.',
+      'In der Channel-Beschreibung Zweck und Ende festhalten.',
+      'Standard-Channel wählen, wenn alle im Team mitlesen dürfen. Privat nur, wenn es wirklich einen abgegrenzten Personenkreis gibt.',
+      'Dateien von Anfang an im Channel ablegen, nicht im Chat — sonst ist der Ort nur halb da.'
+    ],
+    caution:'Bei einem befristeten Projekt gehört das voraussichtliche Enddatum in die Beschreibung. Ohne Enddatum wird aus jedem Projekt-Channel eine Karteileiche.'},
+
+  r_reuse:{kind:'r', tone:'reuse', x:C[9], y:470, w:RW, h:RH, lines:['♻️  Bestehenden','Channel nutzen'],
+    title:'Den bestehenden Channel nutzen', tag:'Nichts Neues nötig',
+    why:'Der Ort existiert schon. Ein zweiter Channel zum gleichen Thema teilt vor allem die Aufmerksamkeit — und die Dateien.',
+    steps:[
+      'Im bestehenden Channel einen neuen Beitrag starten und alle Antworten dort halten.',
+      'Beitrag anheften, wenn er länger relevant bleibt.',
+      'Falls der Channel unübersichtlich wird: erst aufräumen und Registerkarten ordnen, dann über einen zweiten Channel nachdenken.'
+    ],
+    caution:'Wenn Sie den passenden Channel nur schwer gefunden haben, finden ihn andere gar nicht. Das ist ein Namens- und Struktur-Thema, kein Grund für einen neuen Channel.'},
+
+  r_chat:{kind:'r', tone:'chat', x:C[9], y:830, w:RW, h:RH, lines:['💬  Chat genügt'],
+    title:'Ein Chat genügt', tag:'Keine Struktur nötig',
+    why:'Kurz, klein oder beides. Was hier entsteht, muss in einem Jahr niemand mehr wiederfinden.',
+    steps:[
+      'Einzel- oder Gruppenchat verwenden.',
+      'Gruppenchat benennen, sobald mehr als drei Personen darin sind — sonst weiss niemand, worum es ging.',
+      'Wenn Dateien entstehen, die andere später brauchen: gleich im passenden Team ablegen, nicht im Chat lassen.',
+      'Wird aus der Absprache doch ein Vorhaben, starten Sie diese Entscheidung einfach neu.'
+    ],
+    caution:'Chat-Dateien liegen im OneDrive der sendenden Person. Verlässt sie die Universität, sind sie schwer erreichbar.'},
+
+  r_klaeren:{kind:'r', tone:'stop', x:C[9], y:650, w:RW, h:RH, lines:['⚠️  Erst klären'],
+    title:'Erst klären, dann bauen', tag:'Noch nicht entscheiden',
+    why:'Eine Struktur zu bauen, bevor das Vorhaben steht, macht die Unklarheit dauerhaft sichtbar — und meistens dauerhaft.',
+    steps:[
+      'In einem Satz aufschreiben, wozu das Vorhaben da ist. Wenn das nicht gelingt, ist es noch keine Struktur wert.',
+      'Festlegen, wer entscheidet, wer dazugehört, und an welche Organisationseinheit es angebunden ist.',
+      'Bis dahin im Chat oder in einem bestehenden Channel weiterarbeiten.',
+      'Danach diese Entscheidung noch einmal durchlaufen — meist ist die Antwort dann eindeutig.'
+    ],
+    caution:'Das ist kein Nein. Es ist ein Später — mit einer konkreten Aufgabe davor.'}
+};
+
+const E = [
+  {f:'start', t:'eA'},
+  {f:'start', t:'eB'},
+  {f:'eA', t:'q_dauer'},
+  {f:'eB', t:'q_dauer'},
+  {f:'q_dauer', t:'r_chat', l:'unter 2 Wochen', lane:960, ex:1760, lx:636, ly:724},
+  {f:'q_dauer', t:'q_personen', l:'2 Wochen +'},
+  {f:'q_personen', t:'r_chat', l:'1–2 Personen', lane:1010, ex:1810, lx:836, ly:790},
+  {f:'q_personen', t:'r_team', l:'über 30 Personen', lane:56, ex:1810, lx:836, ly:300},
+  {f:'q_personen', t:'q_klar', l:'3–30'},
+  {f:'q_klar', t:'r_klaeren', l:'noch unklar', lane:1060, gx:1616, lx:1036, ly:812},
+  {f:'q_klar', t:'q_themen', l:'ja'},
+  {f:'q_themen', t:'r_team', l:'4+ / sehr verschieden', lane:98, ex:1760, lx:1236, ly:250},
+  {f:'q_themen', t:'q_passung', l:'1–3, verwandt'},
+  {f:'q_passung', t:'q_bestehend', l:'ja'},
+  {f:'q_passung', t:'q_gov', l:'nein'},
+  {f:'q_bestehend', t:'r_reuse', l:'ja', mx:1636},
+  {f:'q_bestehend', t:'r_channel', l:'nein', mx:1660},
+  {f:'q_gov', t:'r_team', l:'ja', mx:1684},
+  {f:'q_gov', t:'r_klaeren', l:'nein', mx:1636}
+];
+
+const TONE = {
+  team:    {fill:'#2D373C', stroke:'#2D373C', text:'#FFFFFF', label:'Neues Team'},
+  channel: {fill:'#A5D7D2', stroke:'#6FB6AF', text:'#22292D', label:'Neuer Channel'},
+  reuse:   {fill:'#D2EBE9', stroke:'#A5D7D2', text:'#22292D', label:'Bestehendes nutzen'},
+  chat:    {fill:'#EDEFEF', stroke:'#C6CFCE', text:'#2D373C', label:'Chat genügt'},
+  stop:    {fill:'#FFFFFF', stroke:'#D20537', text:'#D20537', label:'Erst klären'}
+};
+
+/* ============================================================
+   2. MAP — render the graph as inline SVG
+   ============================================================ */
+const SVGNS='http://www.w3.org/2000/svg';
+function el(n,a){const e=document.createElementNS(SVGNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
+
+function pts(e){
+  const a=N[e.f], b=N[e.t];
+  const ax=a.x+a.w, ay=a.y+a.h/2, bx=b.x, by=b.y+b.h/2;
+  if(e.lane!=null){
+    const sx=ax+16;
+    if(e.gx) return [[ax,ay],[sx,ay],[sx,e.lane],[e.gx,e.lane],[e.gx,by],[bx,by]];
+    const ty = e.lane < b.y ? b.y : b.y+b.h;   /* enter top or bottom edge */
+    return [[ax,ay],[sx,ay],[sx,e.lane],[e.ex,e.lane],[e.ex,ty]];
+  }
+  if(Math.abs(ay-by)<1) return [[ax,ay],[bx,by]];
+  const mx=e.mx || ax+(bx-ax)/2;
+  return [[ax,ay],[mx,ay],[mx,by],[bx,by]];
+}
+function rounded(p,r){
+  let d='M'+p[0][0]+','+p[0][1];
+  for(let i=1;i<p.length-1;i++){
+    const [px,py]=p[i-1],[cx,cy]=p[i],[nx,ny]=p[i+1];
+    const d1=Math.hypot(cx-px,cy-py), d2=Math.hypot(nx-cx,ny-cy);
+    const rr=Math.min(r,d1/2,d2/2);
+    d+=` L${cx+(px-cx)/d1*rr},${cy+(py-cy)/d1*rr}`;
+    d+=` Q${cx},${cy} ${cx+(nx-cx)/d2*rr},${cy+(ny-cy)/d2*rr}`;
+  }
+  const L=p[p.length-1];
+  d+=` L${L[0]},${L[1]}`;
+  return d;
+}
+
+function buildMap(){
+  const svg=el('svg',{viewBox:'0 0 1920 1080',xmlns:SVGNS,id:'map',
+    'font-family':'"Segoe UI","Helvetica Neue",Arial,sans-serif'});
+  svg.appendChild(el('rect',{x:0,y:0,width:1920,height:1080,fill:'#FFFFFF'}));
+
+  const gEdges=el('g',{id:'edges'});
+  const gNodes=el('g',{id:'nodes'});
+
+  E.forEach((e,i)=>{
+    const g=el('g',{'data-edge':i,'data-f':e.f,'data-t':e.t});
+    g.appendChild(el('path',{d:rounded(pts(e),14),fill:'none',
+      stroke:'#9FADAC','stroke-width':1.8,'stroke-linecap':'round'}));
+    const P=pts(e), last=P[P.length-1], prev=P[P.length-2];
+    const dx=Math.sign(last[0]-prev[0]), dy=Math.sign(last[1]-prev[1]);
+    const head = dx!==0
+      ? `M${last[0]-9*dx},${last[1]-5} L${last[0]},${last[1]} L${last[0]-9*dx},${last[1]+5}`
+      : `M${last[0]-5},${last[1]-9*dy} L${last[0]},${last[1]} L${last[0]+5},${last[1]-9*dy}`;
+    g.appendChild(el('path',{d:head,
+      fill:'none',stroke:'#9FADAC','stroke-width':1.8,'stroke-linejoin':'round','stroke-linecap':'round'}));
+    if(e.l){
+      const a=N[e.f], b=N[e.t];
+      const ay=a.y+a.h/2, by=b.y+b.h/2;
+      let lx,ly,anchor='middle';
+      if(e.lane!=null){ lx=e.lx; ly=e.ly; anchor='start'; }
+      else if(Math.abs(ay-by)<1){
+        /* same row: the gutter is narrow, so sit the label above the box row */
+        lx=(a.x+a.w+b.x)/2; ly=a.y-13;
+      } else {
+        lx=e.mx || (a.x+a.w+b.x)/2; ly=(ay+by)/2-8;
+      }
+      const t=el('text',{x:lx,y:ly,'font-size':16,fill:'#46505A','text-anchor':anchor,
+        stroke:'#FFFFFF','stroke-width':5,'paint-order':'stroke','stroke-linejoin':'round'});
+      t.textContent=e.l;
+      g.appendChild(t);
+    }
+    gEdges.appendChild(g);
+  });
+
+  for(const id in N){
+    const n=N[id];
+    const g=el('g',{'data-node':id});
+    let fill='#FFFFFF', stroke='#B9C4C3', tcol='#2D373C', sw=1.6;
+    if(n.kind==='start'){ fill='#FFFFFF'; stroke='#2D373C'; sw=2.4; }
+    if(n.kind==='entry'){ fill='#FFFFFF'; stroke='#2D373C'; sw=2.4; }
+    if(n.kind==='r'){ const T=TONE[n.tone]; fill=T.fill; stroke=T.stroke; tcol=T.text; sw=2.4; }
+    g.appendChild(el('rect',{x:n.x,y:n.y,width:n.w,height:n.h,rx:6,fill:fill,stroke:stroke,'stroke-width':sw}));
+    const fs = n.kind==='r' ? 19 : 16;
+    const lh = n.kind==='r' ? 24 : 22;
+    const total=(n.lines.length-1)*lh;
+    n.lines.forEach((line,i)=>{
+      const t=el('text',{x:n.x+n.w/2, y:n.y+n.h/2 - total/2 + i*lh + fs*0.34,
+        'font-size':fs,'text-anchor':'middle',fill:tcol,
+        'font-weight': n.kind==='r'||n.kind==='start' ? 600 : 400});
+      t.textContent=line;
+      g.appendChild(t);
+    });
+    gNodes.appendChild(g);
+  }
+
+  svg.appendChild(gEdges);
+  svg.appendChild(gNodes);
+  document.getElementById('map-scroll').appendChild(svg);
+
+  const lg=document.getElementById('legend');
+  for(const k in TONE){
+    const s=document.createElement('span');
+    s.innerHTML='<i style="background:'+TONE[k].fill+';border:1.5px solid '+TONE[k].stroke+'"></i>'+TONE[k].label;
+    lg.appendChild(s);
+  }
+}
+buildMap();
+
+/* highlight a path on the map */
+function highlight(nodeIds){
+  const svg=document.getElementById('map');
+  const on=nodeIds&&nodeIds.length;
+  svg.querySelectorAll('[data-node]').forEach(g=>{
+    g.setAttribute('opacity', !on||nodeIds.includes(g.dataset.node) ? 1 : .17);
+  });
+  svg.querySelectorAll('[data-edge]').forEach(g=>{
+    let live=false;
+    if(on) for(let i=0;i<nodeIds.length-1;i++)
+      if(g.dataset.f===nodeIds[i]&&g.dataset.t===nodeIds[i+1]) live=true;
+    g.setAttribute('opacity', !on||live ? 1 : .17);
+    g.querySelectorAll('path').forEach(p=>p.setAttribute('stroke', !on ? '#9FADAC' : (live?'#D20537':'#9FADAC')));
+    g.querySelectorAll('path').forEach(p=>p.setAttribute('stroke-width', on&&live ? 3 : 1.8));
+  });
+}
+document.getElementById('clear-hl').addEventListener('click',()=>highlight(null));
+
+/* ============================================================
+   3. WIZARD
+   ============================================================ */
+let cur='start', hist=[], state={}, path=['start'];
+const stage=document.getElementById('stage');
+const trail=document.getElementById('trail');
+
+function drawTrail(){
+  trail.innerHTML='';
+  hist.forEach(h=>{
+    const s=document.createElement('span');
+    s.innerHTML=h.q+' <b>'+h.a+'</b>';
+    trail.appendChild(s);
+  });
+}
+
+function go(id){
+  cur=id;
+  if(!path.includes(id)) path.push(id);
+  const n=N[id];
+  if(n.auto){ go(n.auto); return; }
+  /* known from the entry point: the fitting team already exists */
+  if(id==='q_passung' && state.entry==='eB'){
+    hist.push({q:'Passendes Team',a:'bereits gewählt'});
+    go('q_bestehend'); return;
+  }
+  render();
+}
+
+function render(){
+  const n=N[cur];
+  drawTrail();
+  stage.innerHTML='';
+  if(n.kind==='r'){ renderResult(n); return; }
+
+  const h=document.createElement('div');
+  h.className='q'; h.textContent=n.q;
+  const p=document.createElement('div');
+  p.className='q-note'; p.textContent=n.note||'';
+  const box=document.createElement('div'); box.className='opts';
+  n.opts.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.type='button';
+    b.innerHTML=esc(o.t)+(o.s?'<em>'+esc(o.s)+'</em>':'');
+    b.addEventListener('click',()=>{
+      hist.push({q:shortQ(cur),a:o.t});
+      if(cur==='start') state.entry=o.to;
+      if(o.set) Object.assign(state,o.set);
+      go(o.to);
+    });
+    box.appendChild(b);
+  });
+  stage.append(h,p,box);
+  if(hist.length) stage.appendChild(navBar());
+}
+
+function shortQ(id){
+  return {start:'Einstieg',q_dauer:'Dauer',q_personen:'Personen',q_klar:'Thema',
+          q_themen:'Bereiche',q_passung:'Passendes Team',q_bestehend:'Channel vorhanden',
+          q_gov:'Trägerschaft'}[id]||id;
+}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+function navBar(){
+  const nav=document.createElement('div'); nav.className='nav no-print';
+  const back=document.createElement('button');
+  back.className='link'; back.type='button'; back.textContent='Eine Frage zurück';
+  back.addEventListener('click',()=>{
+    hist.pop();
+    if(hist.length&&hist[hist.length-1].a==='bereits gewählt') hist.pop();
+    path.pop();
+    replay();
+  });
+  const reset=document.createElement('button');
+  reset.className='link'; reset.type='button'; reset.textContent='Von vorne';
+  reset.addEventListener('click',()=>{hist=[];state={};path=['start'];highlight(null);go('start');});
+  nav.append(back,reset);
+  return nav;
+}
+
+/* rebuild state by replaying the remaining answers */
+function replay(){
+  const answers=hist.slice();
+  hist=[]; state={}; path=['start']; cur='start';
+  const seq=answers.slice();
+  go('start');
+  seq.forEach(a=>{
+    if(a.a==='bereits gewählt') return;
+    const n=N[cur];
+    if(!n.opts) return;
+    const o=n.opts.find(x=>x.t===a.a);
+    if(!o) return;
+    hist.push({q:shortQ(cur),a:o.t});
+    if(cur==='start') state.entry=o.to;
+    if(o.set) Object.assign(state,o.set);
+    go(o.to);
+  });
+}
+
+function renderResult(n){
+  const T=TONE[n.tone];
+  const d=document.createElement('div'); d.className='res';
+  const tag=document.createElement('span');
+  tag.className='res-tag'; tag.textContent=n.tag;
+  tag.style.background=T.fill; tag.style.color=T.text;
+  tag.style.border='1.5px solid '+T.stroke;
+  const h=document.createElement('h3'); h.textContent=n.title;
+  const why=document.createElement('p'); why.className='why'; why.textContent=variantWhy(n);
+  const h4=document.createElement('h4'); h4.textContent='So gehen Sie vor';
+  const ul=document.createElement('ul');
+  n.steps.forEach(s=>{const li=document.createElement('li');li.textContent=s;ul.appendChild(li);});
+  const c=document.createElement('p'); c.className='caution'; c.textContent=n.caution;
+  d.append(tag,h,why,h4,ul,c);
+
+  const nav=document.createElement('div'); nav.className='nav no-print';
+  const show=document.createElement('button');
+  show.className='link'; show.type='button'; show.textContent='Diesen Weg in der Übersicht zeigen';
+  show.addEventListener('click',()=>{
+    highlight(path);
+    document.getElementById('map-scroll').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  nav.appendChild(show);
+  const back=document.createElement('button');
+  back.className='link'; back.type='button'; back.textContent='Eine Frage zurück';
+  back.addEventListener('click',()=>{hist.pop();path.pop();replay();});
+  const reset=document.createElement('button');
+  reset.className='link'; reset.type='button'; reset.textContent='Von vorne';
+  reset.addEventListener('click',()=>{hist=[];state={};path=['start'];highlight(null);go('start');});
+  nav.append(back,reset);
+  d.appendChild(nav);
+  stage.appendChild(d);
+}
+
+/* small variations so the answer reflects the path taken */
+function variantWhy(n){
+  if(n.tone==='team'&&state.groesse==='gross')
+    return 'Über dreissig aktiv Mitwirkende sprengen jeden einzelnen Channel. Diese Gruppe braucht eigene Räume und eigene Zuständigkeiten.';
+  if(n.tone==='team'&&state.bereiche==='viele')
+    return 'Mehrere eigenständige Arbeitsbereiche bedeuten mehrere Ablagen, mehrere Zuständige, mehrere Rhythmen. Genau dafür ist ein Team da.';
+  if(n.tone==='channel'&&state.dauer==='befristet')
+    return 'Ein befristetes Projekt mit klarem Thema — der richtige Ort dafür ist ein Channel mit Enddatum, kein eigenes Team.';
+  if(n.tone==='chat'&&state.dauer==='kurz')
+    return 'Unter zwei Wochen entsteht nichts, das jemand später wiederfinden muss. Struktur würde hier länger leben als das Thema.';
+  if(n.tone==='stop'&&state.grund==='traeger')
+    return 'Das Thema ist klar, aber die Trägerschaft nicht. Ein Team ohne verantwortliche Einheit findet niemanden, der es pflegt oder am Ende archiviert.';
+  return n.why;
+}
+
+go('start');
+
+/* ============================================================
+   4. JPG export
+   ============================================================ */
+document.getElementById('dl').addEventListener('click',()=>{
+  const src=document.getElementById('map');
+  const clone=src.cloneNode(true);
+  clone.setAttribute('width',1920);
+  clone.setAttribute('height',1080);
+  clone.setAttribute('xmlns',SVGNS);
+  const data=new XMLSerializer().serializeToString(clone);
+  const url=URL.createObjectURL(new Blob([data],{type:'image/svg+xml;charset=utf-8'}));
+  const img=new Image();
+  img.onload=()=>{
+    const cv=document.createElement('canvas');
+    cv.width=3840; cv.height=2160;
+    const ctx=cv.getContext('2d');
+    ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.drawImage(img,0,0,cv.width,cv.height);
+    URL.revokeObjectURL(url);
+    const a=document.createElement('a');
+    a.href=cv.toDataURL('image/jpeg',0.92);
+    a.download='m365-entscheidungsweg.jpg';
+    a.click();
+  };
+  img.onerror=()=>{ alert('Export fehlgeschlagen. Alternativ: Browser-Druckdialog und „Als PDF sichern".'); URL.revokeObjectURL(url); };
+  img.src=url;
+});
+</script>
+</body>
+</html>

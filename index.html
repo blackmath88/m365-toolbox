@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>m365-toolbox — Universität Basel</title>
+<link rel="stylesheet" href="assets/tokens.css">
+<style>
+  .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;margin-bottom:28px}
+  .tool{
+    display:block;text-decoration:none;color:inherit;background:var(--card);
+    border:1px solid var(--line);border-radius:4px;padding:28px;
+    transition:border-color .12s,background .12s;
+  }
+  .tool:hover{border-color:var(--mint);background:#fff}
+  .tool:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+  .tool .num{font-size:12.5px;color:var(--ink-2);margin-bottom:14px;display:block}
+  .tool h2{font-size:21px;font-weight:600;letter-spacing:-.015em;margin-bottom:8px}
+  .tool .what{font-size:15px;color:var(--ink-2);margin-bottom:16px;line-height:1.5}
+  .tool .use{font-size:13px;color:var(--ink);border-top:1px solid var(--line);padding-top:12px}
+  .tool .use b{font-weight:600}
+  .about{max-width:62ch}
+  .about h2{font-size:18px;font-weight:600;margin-bottom:12px}
+  .about p{font-size:15.5px;color:var(--ink-2);margin-bottom:12px}
+  .about code{font-family:Consolas,"SF Mono",monospace;font-size:14px;
+    background:var(--mint-light);padding:2px 6px;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="kicker">Universität Basel · M365 Community</span>
+  <h1>m365-toolbox</h1>
+  <p>Kleine Werkzeuge aus den M365-Schulungen. Jedes beantwortet genau eine Frage,
+     läuft im Browser und braucht keine Anmeldung.</p>
+</header>
+
+<div class="tools">
+
+  <a class="tool" href="team-channel-chat/">
+    <span class="num">Werkzeug 1</span>
+    <h2>Team, Channel oder Chat?</h2>
+    <p class="what">Ein Fragenpfad mit zwei Einstiegen, der am Ende sagt, welche Struktur
+       zu Ihrem Vorhaben passt — und wann keine nötig ist.</p>
+    <p class="use"><b>Im Workshop:</b> live durchspielen, dann die Übersicht als Handout.</p>
+  </a>
+
+  <a class="tool" href="sharepoint-onedrive/">
+    <span class="num">Werkzeug 2</span>
+    <h2>SharePoint oder OneDrive?</h2>
+    <p class="what">Acht Situationen zum Einsortieren. Die meisten liegen mindestens einmal
+       falsch — und genau daran hängt die Unterscheidung, um die es geht.</p>
+    <p class="use"><b>Im Workshop:</b> als Einstieg, bevor über Ablage geredet wird.</p>
+  </a>
+
+  <a class="tool" href="team-personas/">
+    <span class="num">Werkzeug 3</span>
+    <h2>Team-Personas</h2>
+    <p class="what">Sechs Team-Typen mit bewährtem Standard-Setup: Channels, Rollen,
+       Namenskonvention, Lebenszyklus — und der typische Fehler pro Typ.</p>
+    <p class="use"><b>Im Workshop:</b> Setup kopieren und direkt im eigenen Team anwenden.</p>
+  </a>
+
+</div>
+
+<section class="panel about">
+  <h2>Über diese Sammlung</h2>
+  <p>Die Werkzeuge stammen aus der M365-Schulungsreihe der Universität Basel. Sie sind bewusst
+     klein gehalten: je eine Datei, ohne Abhängigkeiten, ohne Build-Schritt. Wer eines davon
+     für die eigene Hochschule anpassen will, kopiert die Datei und ändert die Inhalte —
+     alle Texte stehen oben im Skript.</p>
+  <p>Gestaltung und Farben folgen dem Erscheinungsbild der Universität Basel. Die gemeinsamen
+     Tokens liegen in <code>assets/tokens.css</code>.</p>
+  <p>Fehler gefunden oder ein Werkzeug vermisst? Issue im Repository
+     <code>blackmath88/m365-toolbox</code>.</p>
+</section>
+
+<footer>
+  <span>Universität Basel · M365-Schulungsreihe</span>
+  <span>Drei Werkzeuge</span>
+</footer>
+</div>
+</body>
+</html>
