@@ -9,6 +9,13 @@ Jedes beantwortet genau eine Frage, läuft ohne Anmeldung und ohne Server.
 | 2 | `sharepoint-onedrive/` | SharePoint oder OneDrive — wo gehört die Datei hin? |
 | 3 | `team-personas/` | Welches Standard-Setup passt zu diesem Team-Typ? |
 
+## Weiterentwicklung
+
+Die nächste Entwicklungsrichtung verschiebt den Schwerpunkt von Feature-Erklärung zu kleinen Interventionen, die konkrete Reibung im Arbeitsalltag reduzieren: Team-Konventionen, persönliche Quick Wins und digitale Hygiene.
+
+- [`docs/concept.md`](docs/concept.md) — Produktidee, Interventionen, Prinzipien und Ton
+- [`docs/build-plan.md`](docs/build-plan.md) — priorisierter Umsetzungsplan und Coding-Slices
+
 ## Technik
 
 Statisches HTML, Vanilla JavaScript, kein Build-Schritt, keine externen Abhängigkeiten.
