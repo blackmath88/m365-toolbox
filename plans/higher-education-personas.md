@@ -37,8 +37,8 @@ Mobile: single column, tension and decision first, maps secondary.
 
 ## Tasks
 
-- [ ] 1. [tier:standard] Restructure content into a world → people → artefacts → scenarios → decision_points schema with evidence tags and lens references; keep every v1 field's content; add the missing Communication hook. Single editable source file that works offline (see open decision A). (parallel)
-- [ ] 2. [tier:standard] Content gap fill per research takeaways (incl. surname renames from decision B and the lean teaching world from decision C): Nora triggers, commission turnover/secretariat, research-data boundary + lab pattern, cross-team Leadership Forum, a "what we'd not do" per decision. Mark source tags honestly. (parallel)
+- [x] 1. [tier:standard] Restructure content into a world → people → artefacts → scenarios → decision_points schema with evidence tags and lens references; keep every v1 field's content; add the missing Communication hook. Single editable source file that works offline (see open decision A). (parallel)
+- [x] 2. [tier:standard] Content gap fill per research takeaways (incl. surname renames from decision B and the lean teaching world from decision C): Nora triggers, commission turnover/secretariat, research-data boundary + lab pattern, cross-team Leadership Forum, a "what we'd not do" per decision. Mark source tags honestly. (parallel)
 - [ ] 3. [tier:deep] Build the page shell + home + world view in the agreed visual direction, using `assets/tokens.css`.
 - [ ] 4. [tier:standard] Scenario view, module lens switcher, before/after, reveal-recommendation trainer mode, print/copy.
 - [ ] 5. [tier:light] Link the new surface from `index.html` and the higher-education README; update root README tool table. Do not touch `team-personas/index.html`.

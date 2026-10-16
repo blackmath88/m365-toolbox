@@ -22,7 +22,8 @@ The same fictional people and working worlds should recur across modules so the 
 ## Files
 
 - `BRIEF.md` — product / content brief for implementation
-- `personas.json` — structured seed content for the fictional higher-education universe
+- `worlds.js` — single editable source (`window.HE_WORLDS`, loaded via `<script src>`, works offline) for the fictional higher-education universe
+- `check-worlds.mjs` — dependency-free validator; run `node check-worlds.mjs` after editing `worlds.js`
 
 ## Implementation
 
