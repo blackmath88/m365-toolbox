@@ -559,25 +559,17 @@ ul.plain li{padding:3px 0}
   .sec-h p{font-size:8pt}
   .sec-b{max-width:none}
   .shift,.shifts-head{grid-template-columns:1fr 70px 1fr}
-  .scenes{grid-template-columns:1fr 20px 1fr}
-  .scene,.sc-row,.sc-posts>li{break-inside:avoid}
-  .sc-cap{margin-bottom:10px;font-size:7.5pt}
-  .scenes{font-size:8pt}
-  .sc-row{padding:4px 8px}
-  .sc-txt,.sc-posts p,.sc-files li,.sc-todo li{font-size:8pt}
-  .sc-txt span,.sc-files li>span>span,.sc-meta{font-size:7pt!important}
-  .sc-row .role{font-size:7pt}
-  .sc-posts{padding:6px 8px;gap:4px}
-  .sc-posts>li{padding:5px 6px}
-  .sc-files li{padding:3px 2px}
-  .sc-todo li{padding:2px 0}
-  .sc-sys{padding:4px 10px 6px}
-  .scene figcaption{font-size:9pt;margin-bottom:4px}
+  /* print is a briefing: the visual scenes stay on the web, the numbered change rows carry the story */
+  .scenes,.sc-cap,.scene{display:none!important}
+  /* A4 width hits the mobile breakpoint: keep the change rows side by side with a sideways arrow */
+  .sa{flex-direction:column;justify-content:center;padding:0;font-size:7.5pt}
+  .sa .arr{transform:none;width:20px;height:20px}
+  .is-stay .sa::before{width:24px;height:0;border-left:0;border-top:3px double var(--stroke-2);margin:0 0 3px}
   .cmp-top{margin-bottom:8px}
   .sf,.st{padding:5px 10px;gap:2px}
   .shift{padding:2px 0}
   .cmpv .boundary{margin-top:10px;font-size:9pt;padding:6px 10px}
-  .mk,.sc-rail i,.sc-tm,.sc-chans li.on,.sys{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .mk{print-color-adjust:exact;-webkit-print-color-adjust:exact}
   .shift{break-inside:avoid;padding:4px 0}
   .sf,.st{padding:8px 12px}
   .s-t{font-size:10pt}
