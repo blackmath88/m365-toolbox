@@ -227,45 +227,84 @@
       '<p class="sc-cap">Illustrative Szenen, fiktive Personen, kein Produktbild. Die Nummern führen zu den Veränderungen darunter.</p>';
   }
 
-  /* connector lines for the Heute topology; measured, so they follow the layout. Off on narrow screens (--lines:0). */
+  /* Connector lines for the Heute topology. They are measured, so they only appear when the geometry is trustworthy:
+     the box has class "has-lines" only after a clean draw. Without it, CSS shows each item's person as text
+     ("Sophie Frei · …") and hides the line legend, so the scene still reads without any connectors. */
   var SVGNS = 'http://www.w3.org/2000/svg';
-  function drawTopo(box) {
+  function clearTopo(box) {
     var old = box.querySelector('svg.topo-lines');
     if (old) old.remove();
-    var R = box.getBoundingClientRect();
-    if (!R.width || getComputedStyle(box).getPropertyValue('--lines').trim() === '0') return;
-    var svg = document.createElementNS(SVGNS, 'svg');
-    svg.setAttribute('class', 'topo-lines'); svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('width', R.width); svg.setAttribute('height', R.height);
-    var line = function (d, cls) { var p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', d); p.setAttribute('class', cls); svg.appendChild(p); };
-    var rel = function (r) { return { l: r.left - R.left, r: r.right - R.left, t: r.top - R.top, b: r.bottom - R.top, cx: r.left - R.left + r.width / 2, cy: r.top - R.top + r.height / 2 }; };
-    var items = [].slice.call(box.querySelectorAll('.titem'));
-    items.forEach(function (it) {
-      var who_ = box.querySelector('[data-p="' + it.getAttribute('data-from') + '"]');
-      if (!who_) return;
-      var P = rel(who_.getBoundingClientRect()), B = rel(it.getBoundingClientRect());
-      var x1 = P.r + 6, y1 = P.cy, x2 = B.l, y2 = B.t + 14, dx = Math.max(24, (x2 - x1) * .5);
-      line('M' + x1 + ' ' + y1 + ' C' + (x1 + dx) + ' ' + y1 + ' ' + (x2 - dx) + ' ' + y2 + ' ' + x2 + ' ' + y2,
-        'ln' + (it.getAttribute('data-role') === 'dependency' ? ' ln-dep' : ''));
-    });
-    /* the same thing kept twice: a dashed bracket on the right, joining the copies */
-    var byMark = {};
-    items.forEach(function (it) { var m = it.getAttribute('data-mark'); if (m && it.getAttribute('data-role') === 'duplicate') (byMark[m] = byMark[m] || []).push(it); });
-    Object.keys(byMark).forEach(function (m) {
-      var g = byMark[m].map(function (it) { return rel(it.getBoundingClientRect()); });
-      if (g.length < 2) return;
-      var x = Math.max.apply(null, g.map(function (r) { return r.r; })) + 18, d = '';
-      g.forEach(function (r) { d += 'M' + r.r + ' ' + r.cy + ' H' + x + ' '; });
-      d += 'M' + x + ' ' + g[0].cy + ' V' + g[g.length - 1].cy;
-      line(d, 'ln-dup');
-    });
-    box.insertBefore(svg, box.firstChild);
+    box.classList.remove('has-lines');
   }
-  var topoRO = window.ResizeObserver ? new ResizeObserver(function (es) { es.forEach(function (e) { drawTopo(e.target); }); }) : null;
+  function drawTopo(box) {
+    clearTopo(box);
+    try {
+      if (!box.isConnected || getComputedStyle(box).getPropertyValue('--lines').trim() === '0') return;
+      var R = box.getBoundingClientRect();
+      if (!(R.width > 40 && R.height > 40)) return;
+      var ok = function (r) {
+        return r.width > 0 && r.height > 0 && isFinite(r.left + r.top + r.right + r.bottom) &&
+          r.left >= R.left - 2 && r.right <= R.right + 2 && r.top >= R.top - 2 && r.bottom <= R.bottom + 2;
+      };
+      var rel = function (r) { return { l: r.left - R.left, r: r.right - R.left, t: r.top - R.top, b: r.bottom - R.top, cy: r.top - R.top + r.height / 2 }; };
+      var paths = [];
+      var items = [].slice.call(box.querySelectorAll('.titem'));
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i], who_ = box.querySelector('[data-p="' + it.getAttribute('data-from') + '"]');
+        if (!who_) return;
+        var pr = who_.getBoundingClientRect(), ir = it.getBoundingClientRect();
+        if (!ok(pr) || !ok(ir)) return;
+        var P = rel(pr), B = rel(ir);
+        var x1 = P.r + 6, y1 = P.cy, x2 = B.l, y2 = B.t + 14;
+        if (x2 - x1 < 24) return;              /* people and places are not side by side: lines would lie */
+        var dx = Math.max(24, (x2 - x1) * .5);
+        paths.push(['M' + x1 + ' ' + y1 + ' C' + (x1 + dx) + ' ' + y1 + ' ' + (x2 - dx) + ' ' + y2 + ' ' + x2 + ' ' + y2,
+          'ln' + (it.getAttribute('data-role') === 'dependency' ? ' ln-dep' : '')]);
+      }
+      /* the same thing kept twice: a dashed bracket on the right, joining the copies */
+      var byMark = {};
+      items.forEach(function (it) { var m = it.getAttribute('data-mark'); if (m && it.getAttribute('data-role') === 'duplicate') (byMark[m] = byMark[m] || []).push(it); });
+      Object.keys(byMark).forEach(function (m) {
+        var g = byMark[m].map(function (it) { return rel(it.getBoundingClientRect()); });
+        if (g.length < 2) return;
+        var x = Math.max.apply(null, g.map(function (r) { return r.r; })) + 18, d = '';
+        g.forEach(function (r) { d += 'M' + r.r + ' ' + r.cy + ' H' + x + ' '; });
+        paths.push([d + 'M' + x + ' ' + g[0].cy + ' V' + g[g.length - 1].cy, 'ln-dup']);
+      });
+      if (!paths.length) return;
+      var svg = document.createElementNS(SVGNS, 'svg');
+      svg.setAttribute('class', 'topo-lines'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('focusable', 'false');
+      svg.setAttribute('width', R.width); svg.setAttribute('height', R.height);
+      paths.forEach(function (p) {
+        var el = document.createElementNS(SVGNS, 'path');
+        el.setAttribute('d', p[0]); el.setAttribute('class', p[1]); svg.appendChild(el);
+      });
+      box.insertBefore(svg, box.firstChild);
+      box.classList.add('has-lines');
+    } catch (e) {
+      clearTopo(box);
+    }
+  }
+  /* redraw on any size change of the box or of its two columns (text wrap, font swap, tab shown), batched per frame */
+  var topoQueued = [];
+  function queueTopo(box) {
+    if (topoQueued.indexOf(box) >= 0) return;
+    if (!topoQueued.length) requestAnimationFrame(function () { var q = topoQueued; topoQueued = []; q.forEach(drawTopo); });
+    topoQueued.push(box);
+  }
+  var topoRO = window.ResizeObserver ? new ResizeObserver(function (es) {
+    es.forEach(function (e) { var box = e.target.closest('[data-topo]'); if (box) queueTopo(box); });
+  }) : null;
   function watchTopos() {
-    app.querySelectorAll('[data-topo]').forEach(function (box) { if (topoRO) topoRO.observe(box); else drawTopo(box); });
+    app.querySelectorAll('[data-topo]').forEach(function (box) {
+      if (topoRO) [box, box.querySelector('.topo-people'), box.querySelector('.topo-places')].forEach(function (el) { if (el) topoRO.observe(el); });
+      queueTopo(box);
+    });
   }
-  if (!topoRO) window.addEventListener('resize', function () { app.querySelectorAll('[data-topo]').forEach(drawTopo); });
+  function redrawAllTopos() { app.querySelectorAll('[data-topo]').forEach(queueTopo); }
+  if (!topoRO) window.addEventListener('resize', redrawAllTopos);
+  /* web fonts or a late system-font swap change text metrics after the first draw */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(redrawAllTopos);
 
   /* tiny skeleton for the atlas cards: the five setups differ before anyone reads */
   function miniFootprint(w, a) {
