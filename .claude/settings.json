@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "routing-mod-claude": {
+      "source": {
+        "source": "github",
+        "repo": "blackmath88/routing-mod-claude"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "routing-mod@routing-mod-claude": true
+  }
+}
