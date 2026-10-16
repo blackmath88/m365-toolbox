@@ -105,6 +105,7 @@
           '<blockquote class="tension"><p>' + esc(w.tension) + '</p></blockquote>' +
         '</div>' +
         '<div class="world-side">' +
+          miniFootprint(w, a) +
           avatarGroup(w, a, 6) +
           '<p class="meta"><span class="k">Szenario</span> ' + esc(s.name) + '</p>' +
           '<p class="meta"><span class="k">Takt</span> ' + esc(w.rhythm.split(';')[0]) + '</p>' +
@@ -145,12 +146,83 @@
     return steps(f.steps) + (f.loop ? '<p class="loop">' + icon('i-repeat') + 'Danach wieder von vorn: ' + esc(f.loop) + '</p>' : '');
   }
 
+  /* ---------- scenes: illustrative "heute" and M365 vignettes (HTML, not screenshots) ---------- */
+  var TYPE_ICON = { mail: 'i-mail', chat: 'i-chat', file: 'i-doc', folder: 'i-folder', local: 'i-laptop' };
+  function who(w, id) {
+    var p = w.people.filter(function (x) { return x.id === id; })[0];
+    return p ? { name: personName(p.name), av: avatar(w.people.indexOf(p), p.name) }
+             : { name: id, av: '<span class="av av-ext" aria-hidden="true">' + esc(id.charAt(0).toUpperCase()) + '</span>' };
+  }
+  function mk(n) { return n ? '<span class="mk" aria-hidden="true">' + n + '</span><span class="sr-only">Veränderung ' + n + ': </span>' : ''; }
+  function systems(list) {
+    if (!list || !list.length) return '';
+    return '<p class="sc-sys"><span class="k">Verknüpft, bleibt ausserhalb</span>' + list.map(function (y) {
+      return '<span class="sys">' + mk(y.mark) + icon('i-box') + esc(y.name) + '</span>';
+    }).join('') + '</p>';
+  }
+  function fileRows(files) {
+    return '<ul class="sc-files">' + files.map(function (f) {
+      var dir = /\/\s*$/.test(f.name);
+      return '<li>' + mk(f.mark) + icon(dir ? 'i-folder' : 'i-doc') + '<span><strong>' + esc(f.name) + '</strong><span>' + esc(f.meta) + '</span></span></li>';
+    }).join('') + '</ul>';
+  }
+  function sceneToday(w, a) {
+    var t = a.scenes.today;
+    return '<figure class="scene sc-today"><figcaption><span class="sc-k">Heute</span>' + esc(t.title) + '</figcaption>' +
+      '<div class="sc-frame"><ul class="sc-list">' + t.items.map(function (it) {
+        var p = who(w, it.who), r = ROLE[it.role];
+        return '<li class="sc-row tone-' + r.tone + '">' + mk(it.mark) +
+          '<span class="sc-ic">' + icon(TYPE_ICON[it.type]) + '</span>' +
+          '<span class="sc-txt"><strong>' + esc(it.title) + '</strong><span>' + esc(p.name) + ' · ' + esc(it.meta) + '</span></span>' +
+          '<span class="role">' + icon(r.icon) + '<span>' + esc(r.label) + '</span></span></li>';
+      }).join('') + '</ul></div></figure>';
+  }
+  function sceneTarget(w, a) {
+    var t = a.scenes.target, m = w.scenarios[0].m365_model;
+    if (t.kind === 'personal') {
+      return '<figure class="scene sc-target sc-personal"><figcaption><span class="sc-k">M365-Arbeitsmodell</span>OneDrive und To Do</figcaption>' +
+        '<div class="sc-frame"><div class="sc-two">' +
+          '<div><h4 class="sc-h">' + icon('i-folder') + 'OneDrive · Meine Dateien</h4>' + fileRows(t.files) + '</div>' +
+          '<div><h4 class="sc-h">' + icon('i-list') + 'To Do · Meine Aufgaben</h4><ul class="sc-todo">' + t.todo.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' +
+        '</div><p class="sc-note">' + esc(t.note) + '</p>' + systems(t.systems) + '</div></figure>';
+    }
+    var chans = '<ul class="sc-chans">' + m.channels.map(function (c) {
+      return '<li' + (c === t.active ? ' class="on" aria-current="true"' : '') + '>' + esc(c) + '</li>';
+    }).join('') + '</ul>';
+    var body = t.view === 'files' ? fileRows(t.files) : '<ul class="sc-posts">' + t.posts.map(function (q) {
+      var p = who(w, q.by);
+      return '<li>' + mk(q.mark) + p.av + '<div><p class="sc-meta"><strong>' + esc(p.name) + '</strong><span>' + esc(q.time) + '</span></p><p>' + esc(q.text) + '</p>' +
+        (q.file ? '<span class="chip">' + icon(/\/\s*$/.test(q.file) ? 'i-folder' : 'i-doc') + esc(q.file) + '</span>' : '') + '</div></li>';
+    }).join('') + '</ul>';
+    return '<figure class="scene sc-target"><figcaption><span class="sc-k">M365-Arbeitsmodell</span>Team «' + esc(m.team) + '»</figcaption>' +
+      '<div class="sc-frame sc-shell">' +
+        '<div class="sc-rail" aria-hidden="true"><i></i><i class="on"></i><i></i><i></i></div>' +
+        '<div class="sc-nav"><p class="sc-team"><span class="sc-tm" aria-hidden="true">' + esc(initials(m.team)) + '</span>' + esc(m.team) + '</p>' + chans + '</div>' +
+        '<div class="sc-main"><div class="sc-top"><h4 class="sc-h">' + esc(t.active) + '</h4><p class="sc-tabs">' + t.tabs.map(function (x, i) {
+          return '<span' + (i === (t.view === 'files' ? 1 : 0) ? ' class="on"' : '') + '>' + esc(x) + '</span>';
+        }).join('') + '</p></div>' + body + (t.note ? '<p class="sc-note">' + esc(t.note) + '</p>' : '') + systems(t.systems) + '</div>' +
+      '</div></figure>';
+  }
+  function scenePair(w, a) {
+    return '<div class="scenes">' + sceneToday(w, a) +
+      '<div class="sc-arrow" aria-hidden="true">' + icon('i-arrow') + '</div>' + sceneTarget(w, a) + '</div>' +
+      '<p class="sc-cap">Illustrative Szenen mit fiktiven Personen, kein Produktbild. Die Nummern verweisen auf die Veränderungen darunter.</p>';
+  }
+  /* tiny skeleton for the atlas cards: the five setups differ before anyone reads */
+  function miniFootprint(w, a) {
+    var m = w.scenarios[0].m365_model;
+    if (!m) return '<div class="fpm fpm-solo" aria-hidden="true"><span class="fpm-cloud">' + icon('i-folder') + '</span><span class="fpm-todo"><i></i><i></i><i></i></span><span class="fpm-no">kein Team</span></div>';
+    return '<div class="fpm" aria-hidden="true"><span class="fpm-rail"></span><span class="fpm-ch">' +
+      m.channels.map(function (c, i) { return '<i' + (i === 0 ? ' class="on"' : '') + '></i>'; }).join('') + '</span>' +
+      (m.planner_buckets.length || /Planner nur/.test(a.footprint) ? '<span class="fpm-pl"><i></i><i></i><i></i></span>' : '') + '</div>';
+  }
+
   /* ---------- world: Vergleich (default) ---------- */
   function sectionC(w, a) {
-    var rows = a.shifts.map(function (x) {
+    var rows = a.shifts.map(function (x, i) {
       var r = ROLE[x.role], stay = x.kind === 'stay';
       return '<li class="shift ' + (stay ? 'is-stay' : 'is-move') + '">' +
-        '<div class="sf tone-' + r.tone + '"><p class="lbl">Heute</p><p class="s-t"><span class="sr-only">Heute: </span>' + esc(x.from) + '</p>' +
+        '<div class="sf tone-' + r.tone + '"><p class="lbl">Heute</p><p class="s-t">' + mk(i + 1) + '<span class="sr-only">Heute: </span>' + esc(x.from) + '</p>' +
           '<p class="role">' + icon(r.icon) + esc(r.label) + '</p></div>' +
         '<div class="sa" aria-hidden="true"><svg class="ic arr"><use href="#i-arrow"/></svg><span>' + (stay ? 'bleibt' : 'ändert sich') + '</span></div>' +
         '<div class="st z-' + x.zone + '"><p class="lbl">' + (stay ? 'Bleibt so' : 'M365-Arbeitsmodell') + '</p>' +
@@ -163,6 +235,7 @@
       '<div class="cmp-top"><div><h2 id="cmp-h" class="cmp-h">Was ändert sich, was bleibt</h2>' +
         '<p class="cmp-sub">' + a.shifts.filter(function (x) { return x.kind === 'move'; }).length + ' Veränderungen, ' + a.shifts.filter(function (x) { return x.kind === 'stay'; }).length + ' Dinge, die bewusst so bleiben.</p></div>' +
         '<p class="cmp-fp"><span class="k">Passendes Setup</span><strong>' + esc(a.footprint) + '</strong></p></div>' +
+      scenePair(w, a) +
       '<div class="shifts-head" aria-hidden="true"><span>Heute</span><span></span><span>M365-Arbeitsmodell</span></div>' +
       '<ol class="shifts">' + rows + '</ol>' +
       '<p class="boundary"><span class="k">Grenze</span>' + esc(w.boundary) + '</p>' +
@@ -279,7 +352,7 @@
     }).join('');
 
     return '' +
-      sec('Das passende Setup', 'Kein Standard, sondern eine Empfehlung für diesen Kontext', setup) +
+      sec('Das passende Setup', 'Kein Standard, sondern eine Empfehlung für diesen Kontext', setup + sceneTarget(w, a)) +
       sec('Wo wohnt was', 'Persönlich, gemeinsam, institutionell, ausserhalb', track, 'wide') +
       sec('Nach Arbeitsmuster', 'Was sich ändert, was bleibt, was ausserhalb liegt', '<div class="cats">' + cats + '</div>', 'wide') +
       sec('Unsere Wahl für diesen Kontext', 'Entscheide, die sich aus dieser Arbeitswelt ergeben', picks) +

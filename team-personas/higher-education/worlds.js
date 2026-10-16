@@ -2553,6 +2553,8 @@ window.HE_WORLDS = {
  *             kind: move (changes) | stay (deliberately stays);  zone: where it lives afterwards
  * zones       what lives in the institutional zone and in specialist systems outside M365
  * model.<pattern>  change / stay / m365 / outside   (null = nothing to say)
+ * scenes      illustrative "heute" and M365 scenes on the Vergleich. who/by = person id (or plain text),
+ *             mark = number of the shift it illustrates (1-based) or null
  * picks       decision-point ids shown as «Unsere Wahl für diesen Kontext»
  */
 window.HE_ATLAS = {
@@ -2734,7 +2736,93 @@ window.HE_ATLAS = {
       "Ein Team pro Termin",
       "Externe als Gäste ins ganze Forum-Team einladen",
       "Chat-Anhänge als Verteilweg für Präsentationen"
-    ]
+    ],
+    "scenes": {
+      "today": {
+        "title": "Postfach und Ablage, eine Woche vor Termin 3",
+        "items": [
+          {
+            "type": "mail",
+            "who": "sophie-frei",
+            "title": "AW: Veranstaltungsplan – welche Fassung gilt?",
+            "meta": "Anhang: Veranstaltungsplan_Mara.xlsx",
+            "role": "duplicate",
+            "mark": 1
+          },
+          {
+            "type": "mail",
+            "who": "regula-aebi",
+            "title": "Teilnehmende HR (unsere Liste)",
+            "meta": "Anhang: Teilnehmende_HR.xlsx",
+            "role": "duplicate",
+            "mark": 1
+          },
+          {
+            "type": "chat",
+            "who": "sophie-frei",
+            "title": "«Termin 3 machen wir online, ok?»",
+            "meta": "Chat mit Regula",
+            "role": "wrong",
+            "mark": 2
+          },
+          {
+            "type": "mail",
+            "who": "mara-conti",
+            "title": "Wer hat die aktuelle Pendenzenliste?",
+            "meta": "an das ganze Team",
+            "role": "duplicate",
+            "mark": 3
+          },
+          {
+            "type": "file",
+            "who": "daniel-wyss",
+            "title": "Einladung_v3_final_HR.docx",
+            "meta": "Entwurf im Postfach",
+            "role": "duplicate",
+            "mark": null
+          }
+        ]
+      },
+      "target": {
+        "kind": "team",
+        "active": "Leadership Forum",
+        "tabs": [
+          "Beiträge",
+          "Dateien",
+          "Planner"
+        ],
+        "view": "posts",
+        "posts": [
+          {
+            "by": "sophie-frei",
+            "time": "Di 09:12",
+            "text": "Entscheid: Termin 3 findet online statt.",
+            "file": null,
+            "mark": 2
+          },
+          {
+            "by": "mara-conti",
+            "time": "Di 09:40",
+            "text": "Veranstaltungsplan nachgeführt, bitte nur noch diese Datei.",
+            "file": "Veranstaltungsplan.xlsx",
+            "mark": 1
+          },
+          {
+            "by": "lea-baumann",
+            "time": "Mi 08:05",
+            "text": "Offene Pendenzen stehen ab jetzt im Planner, mit Verantwortung und Termin.",
+            "file": null,
+            "mark": 3
+          }
+        ],
+        "systems": [
+          {
+            "name": "Anmeldesystem",
+            "mark": 5
+          }
+        ]
+      }
+    }
   },
   "urban-health-analytics": {
     "label": "Forschungsgruppe",
@@ -2912,7 +3000,96 @@ window.HE_ATLAS = {
       "Grosse Rohdaten oder Gesundheitsdaten «kurz» in Teams oder SharePoint ablegen",
       "Den Datenpartner als Gast ins ganze Gruppenteam einladen",
       "Ein dauerhafter Planner-Plan für alles, was in der Gruppe anfällt"
-    ]
+    ],
+    "scenes": {
+      "today": {
+        "title": "Wo das Paper und die Daten gerade liegen",
+        "items": [
+          {
+            "type": "file",
+            "who": "nina-petrovic",
+            "title": "Paper_HeatHealth_v7.docx",
+            "meta": "OneDrive von Nina",
+            "role": "dependency",
+            "mark": 1
+          },
+          {
+            "type": "file",
+            "who": "david-brunner",
+            "title": "Paper_HeatHealth_v7_DB.docx",
+            "meta": "Download-Ordner, Kommentare als Kopie",
+            "role": "duplicate",
+            "mark": 1
+          },
+          {
+            "type": "chat",
+            "who": "marc-schneider",
+            "title": "«Ist das Messgerät morgen frei?»",
+            "meta": "Gruppenchat",
+            "role": "wrong",
+            "mark": 2
+          },
+          {
+            "type": "file",
+            "who": "marc-schneider",
+            "title": "Feldarbeit_Sommer.xlsx",
+            "meta": "OneDrive von Marc",
+            "role": "dependency",
+            "mark": 3
+          },
+          {
+            "type": "local",
+            "who": "amira-hassan",
+            "title": "Sensordaten_Juli/",
+            "meta": "Lokale Platte, Kopie im Gruppenordner",
+            "role": "wrong",
+            "mark": 5
+          }
+        ]
+      },
+      "target": {
+        "kind": "team",
+        "active": "Publikationen",
+        "tabs": [
+          "Beiträge",
+          "Dateien"
+        ],
+        "view": "posts",
+        "posts": [
+          {
+            "by": "nina-petrovic",
+            "time": "Mo 10:20",
+            "text": "Entwurf für Feedback: bitte direkt in der Datei kommentieren.",
+            "file": "Paper_HeatHealth.docx",
+            "mark": 1
+          },
+          {
+            "by": "marc-schneider",
+            "time": "Mo 13:02",
+            "text": "Feldkampagne: Aufgaben stehen im Planner-Plan «Sommer».",
+            "file": null,
+            "mark": 3
+          },
+          {
+            "by": "elena-rossi",
+            "time": "Di 08:30",
+            "text": "Rohdaten bleiben in der Forschungsdateninfrastruktur. Hier nur Pfad und aggregierte Resultate.",
+            "file": null,
+            "mark": 5
+          }
+        ],
+        "systems": [
+          {
+            "name": "Forschungsdateninfrastruktur",
+            "mark": 5
+          },
+          {
+            "name": "Versionsverwaltung",
+            "mark": 4
+          }
+        ]
+      }
+    }
   },
   "nora-keller": {
     "label": "Einzelne Forscherin",
@@ -3080,7 +3257,84 @@ window.HE_ATLAS = {
       "Ein Team gründen, nur weil ein Artikel zwei Autorinnen hat",
       "Alles vorsorglich in ein Team schieben, damit es «sauber» ist",
       "Ein Projektteam für jedes Forschungsthema"
-    ]
+    ],
+    "scenes": {
+      "today": {
+        "title": "Noras Postfach im Oktober",
+        "items": [
+          {
+            "type": "mail",
+            "who": "Coautorin (Partneruniversität)",
+            "title": "AW: Artikel – meine Kommentare",
+            "meta": "Anhang: Artikel_Nora_v4_Kommentare.docx",
+            "role": "wrong",
+            "mark": 1
+          },
+          {
+            "type": "mail",
+            "who": "nora-keller",
+            "title": "Artikel_v5_zusammengeführt.docx",
+            "meta": "an die Coautorin, von Hand zusammengeführt",
+            "role": "duplicate",
+            "mark": 1
+          },
+          {
+            "type": "mail",
+            "who": "Vertretung",
+            "title": "Was ist dringend, solange Nora weg ist?",
+            "meta": "offene Mails als einzige Übersicht",
+            "role": "dependency",
+            "mark": 2
+          },
+          {
+            "type": "chat",
+            "who": "Institutssekretariat",
+            "title": "«Honorar für die Referentin?»",
+            "meta": "Chat zum Workshop",
+            "role": "wrong",
+            "mark": 4
+          }
+        ]
+      },
+      "target": {
+        "kind": "personal",
+        "files": [
+          {
+            "name": "Forschungsnotizen /",
+            "meta": "nur Nora",
+            "mark": null
+          },
+          {
+            "name": "Artikel_Grenzen.docx",
+            "meta": "geteilt mit der Coautorin, Link mit Bearbeitungsrecht",
+            "mark": 1
+          },
+          {
+            "name": "Lehrunterlagen /",
+            "meta": "nur Nora",
+            "mark": null
+          },
+          {
+            "name": "Übergabe.docx",
+            "meta": "für die Vertretung freigegeben",
+            "mark": 2
+          }
+        ],
+        "todo": [
+          "Artikel überarbeiten",
+          "Literatur bestellen",
+          "Feedback für Studentin",
+          "Reisekosten einreichen"
+        ],
+        "note": "Kein Team. Geteilt wird per Link, wenn jemand mitschreibt.",
+        "systems": [
+          {
+            "name": "Lernplattform",
+            "mark": 5
+          }
+        ]
+      }
+    }
   },
   "commission-digital-collaboration": {
     "label": "Kommission",
@@ -3243,7 +3497,87 @@ window.HE_ATLAS = {
       "Ein Planner-Board für acht Pendenzen im Jahr",
       "Viele Kanäle, von denen nach zwei Sitzungen drei leer bleiben",
       "Altmitglieder im Team lassen, «sie lesen ja nichts mehr»"
-    ]
+    ],
+    "scenes": {
+      "today": {
+        "title": "Eine Woche vor Sitzung 4",
+        "items": [
+          {
+            "type": "mail",
+            "who": "claudia-gisler",
+            "title": "Unterlagen Sitzung 4",
+            "meta": "7 Anhänge an den Verteiler",
+            "role": "wrong",
+            "mark": 1
+          },
+          {
+            "type": "mail",
+            "who": "martina-vogel",
+            "title": "Agenda_v2_nach_Rückmeldung_Vogel.docx",
+            "meta": "dritte Fassung diese Woche",
+            "role": "duplicate",
+            "mark": 2
+          },
+          {
+            "type": "mail",
+            "who": "beat-kunz",
+            "title": "Habe die Unterlagen nicht erhalten",
+            "meta": "externes Mitglied",
+            "role": "wrong",
+            "mark": 1
+          },
+          {
+            "type": "folder",
+            "who": "claudia-gisler",
+            "title": "Protokolle/2026/",
+            "meta": "Netzlaufwerk, Entscheide nur im Protokoll",
+            "role": "dependency",
+            "mark": 3
+          },
+          {
+            "type": "mail",
+            "who": "claudia-gisler",
+            "title": "Verteiler Kommission",
+            "meta": "9 Empfänger, 7 Mitglieder",
+            "role": "duplicate",
+            "mark": 5
+          }
+        ]
+      },
+      "target": {
+        "kind": "team",
+        "active": "Allgemein",
+        "tabs": [
+          "Beiträge",
+          "Dateien"
+        ],
+        "view": "files",
+        "files": [
+          {
+            "name": "Sitzung 4 /",
+            "meta": "Agenda, Unterlagen, Protokoll",
+            "mark": 1
+          },
+          {
+            "name": "Agenda.docx",
+            "meta": "vom Sekretariat gepflegt",
+            "mark": 2
+          },
+          {
+            "name": "Entscheide.xlsx",
+            "meta": "Datum, Beschluss, Link zum Protokoll",
+            "mark": 3
+          },
+          {
+            "name": "Protokolle / 2026 /",
+            "meta": "verabschiedet als PDF",
+            "mark": null
+          }
+        ],
+        "note": "Ein Kanal, kein Planner.",
+        "systems": []
+      }
+    }
   },
   "teaching-team": {
     "label": "Lehrteam",
@@ -3408,6 +3742,95 @@ window.HE_ATLAS = {
       "Pro Semester ein neues Team gründen und das alte vergessen",
       "Studierende in Teams holen, weil «die Plattform umständlich ist»",
       "Noten und Einzelbewertungen im Teamordner ablegen"
-    ]
+    ],
+    "scenes": {
+      "today": {
+        "title": "Semesterstart in drei Postfächern",
+        "items": [
+          {
+            "type": "mail",
+            "who": "simon-luethi",
+            "title": "Semesterplan (meine Fassung)",
+            "meta": "Anhang: Semesterplan_Simon.xlsx",
+            "role": "duplicate",
+            "mark": 1
+          },
+          {
+            "type": "mail",
+            "who": "ruth-ammann",
+            "title": "Lesematerial, neue Fassung",
+            "meta": "Anhang, zweite Kopie auf der Lernplattform",
+            "role": "duplicate",
+            "mark": 1
+          },
+          {
+            "type": "local",
+            "who": "simon-luethi",
+            "title": "Noten_HS.xlsx",
+            "meta": "Laptop von Simon",
+            "role": "wrong",
+            "mark": 2
+          },
+          {
+            "type": "mail",
+            "who": "Studentin",
+            "title": "Frage zu Aufgabe 2",
+            "meta": "an alle drei Dozierenden",
+            "role": "wrong",
+            "mark": 3
+          },
+          {
+            "type": "folder",
+            "who": "Vorgängerin",
+            "title": "Seminar alt/",
+            "meta": "im Postfach der Vorgängerin",
+            "role": "dependency",
+            "mark": 4
+          }
+        ]
+      },
+      "target": {
+        "kind": "team",
+        "active": "Semester",
+        "tabs": [
+          "Beiträge",
+          "Dateien"
+        ],
+        "view": "posts",
+        "posts": [
+          {
+            "by": "ruth-ammann",
+            "time": "Mo 08:10",
+            "text": "Semesterplan und Lesematerial liegen unter «Dateien». Die Lernplattform zeigt den Auszug.",
+            "file": "Semesterplan.xlsx",
+            "mark": 1
+          },
+          {
+            "by": "fabian-steiner",
+            "time": "Do 16:45",
+            "text": "Rückfragen laufen über das Forum der Lernplattform. Hier nur die Zusammenfassung.",
+            "file": null,
+            "mark": 3
+          },
+          {
+            "by": "ruth-ammann",
+            "time": "Fr 11:00",
+            "text": "Übergabedossier fürs nächste Jahr angelegt.",
+            "file": "Übergabedossier /",
+            "mark": 4
+          }
+        ],
+        "systems": [
+          {
+            "name": "Lernplattform",
+            "mark": 3
+          },
+          {
+            "name": "Bewertungssystem",
+            "mark": 2
+          }
+        ]
+      }
+    }
   }
 };

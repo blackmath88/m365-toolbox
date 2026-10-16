@@ -124,7 +124,7 @@ else {
   for (const w of worlds) {
     const a = A[w.id], X = `atlas "${w.id}"`;
     if (!a) { err(`${X}: missing`); continue; }
-    need(a, ['label', 'shape', 'pattern', 'footprint', 'flow', 'map', 'tools', 'shifts', 'zones', 'model', 'picks', 'anti'], X);
+    need(a, ['label', 'shape', 'pattern', 'footprint', 'flow', 'map', 'tools', 'shifts', 'zones', 'model', 'picks', 'anti', 'scenes'], X);
     if (!PATTERNS.has(a.pattern)) err(`${X}: invalid pattern "${a.pattern}"`);
     const pIds = new Set(w.people.map(p => p.id));
     for (const k of ['outside', 'external_people']) for (const id of a.map?.[k] || []) if (!pIds.has(id)) err(`${X} map.${k}: unknown person "${id}"`);
@@ -152,6 +152,26 @@ else {
       if (x.ref !== null && !artIds.has(x.ref)) err(`${X} shifts[${i}]: unknown artefact "${x.ref}"`);
     });
     need(a.zones, ['institutional', 'outside'], `${X} zones`);
+    const sc = a.scenes, nShift = shifts.length;
+    const mark = (m, where) => { if (m !== null && !(Number.isInteger(m) && m >= 1 && m <= nShift)) err(`${where}: mark ${m} outside 1..${nShift}`); };
+    const person = (id, where) => { if (/^[a-z]+(-[a-z]+)+$/.test(id) && !pIds.has(id)) err(`${where}: unknown person "${id}"`); };
+    need(sc, ['today', 'target'], `${X} scenes`);
+    (sc?.today?.items || []).forEach((it, i) => {
+      const W_ = `${X} scenes.today[${i}]`;
+      need(it, ['type', 'who', 'title', 'meta', 'role', 'mark'], W_);
+      if (!['mail', 'chat', 'file', 'folder', 'local'].includes(it.type)) err(`${W_}: invalid type "${it.type}"`);
+      if (!ROLES.has(it.role)) err(`${W_}: invalid role "${it.role}"`);
+      person(it.who, W_); mark(it.mark, W_);
+    });
+    const t = sc?.target || {};
+    if (!['team', 'personal'].includes(t.kind)) err(`${X} scenes.target: invalid kind "${t.kind}"`);
+    if (t.kind === 'team') {
+      const ch = w.scenarios[0].m365_model?.channels || [];
+      if (!ch.includes(t.active)) err(`${X} scenes.target.active "${t.active}" is not a channel in m365_model`);
+      (t.posts || []).forEach((q, i) => { need(q, ['by', 'time', 'text', 'file', 'mark'], `${X} posts[${i}]`); person(q.by, `${X} posts[${i}]`); mark(q.mark, `${X} posts[${i}]`); });
+    }
+    (t.files || []).forEach((f_, i) => { need(f_, ['name', 'meta'], `${X} target.files[${i}]`); mark(f_.mark ?? null, `${X} target.files[${i}]`); });
+    (t.systems || []).forEach((y, i) => mark(y.mark ?? null, `${X} target.systems[${i}]`));
     for (const c of CATS) need(a.model?.[c], ['change', 'stay', 'm365', 'outside'], `${X} model.${c}`);
     const dps = new Set(w.scenarios.flatMap(s => s.decision_points.map(d => d.id)));
     for (const id of a.picks || []) if (!dps.has(id)) err(`${X} picks: unknown decision "${id}"`);
