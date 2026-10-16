@@ -1,0 +1,346 @@
+{
+  "schema": "m365-toolbox.higher-education-personas/v1",
+  "status": "seed-content",
+  "fictional": true,
+  "locale": "de-CH",
+  "purpose": "Recurring fictional higher-education work worlds for M365 Deep Dive training and consulting/adoption design.",
+  "personas": [
+    {
+      "id": "campus-people-development",
+      "type": "administrative-team",
+      "name": "Campus & People Development",
+      "tagline": "A small central service team balancing stable operations, cross-unit projects, and occasional external collaboration.",
+      "people": [
+        {
+          "name": "Dr. Lea Baumann",
+          "role": "Teamleitung",
+          "focus": "Prioritäten, Budget, Abstimmung mit anderen Einheiten"
+        },
+        {
+          "name": "Sophie Frei",
+          "role": "Projektmanagerin",
+          "focus": "Universitätsweite Entwicklungsprogramme und Veranstaltungen"
+        },
+        {
+          "name": "Jonas Meier",
+          "role": "Learning Specialist",
+          "focus": "Workshops, Trainings und digitale Lernangebote"
+        },
+        {
+          "name": "Mara Rossi",
+          "role": "Programmkoordination",
+          "focus": "Termine, Anmeldungen, Räume und interne Kommunikation"
+        },
+        {
+          "name": "Daniel Keller",
+          "role": "Kommunikation & Administration",
+          "focus": "Webseiten, Einladungen und gemeinsame Unterlagen"
+        }
+      ],
+      "collaboration": {
+        "close_internal": [
+          "HR Services"
+        ],
+        "occasional_internal": [
+          "Fakultäten und Departemente",
+          "Kommunikation & Marketing"
+        ],
+        "external": [
+          "Externe Trainer:innen und Referierende"
+        ]
+      },
+      "current_scenario": {
+        "name": "Leadership Forum 2027",
+        "description": "Eine universitätsweite Veranstaltungsreihe mit sechs Terminen, internen und externen Referierenden, Raumplanung, Budget, Kommunikation, Anmeldung, Präsentationen, Feedback und Nachbereitung.",
+        "artefacts": [
+          "Veranstaltungsplan",
+          "Einladung",
+          "Referierendenliste",
+          "Budgetübersicht",
+          "Präsentationen",
+          "Feedbackauswertung",
+          "Pendenzen"
+        ],
+        "bad_state": [
+          "Termine werden per E-Mail abgestimmt.",
+          "Einladungen liegen in mehreren Versionen vor.",
+          "Entscheidungen stehen teilweise nur in Chats.",
+          "Eine Excel-Liste enthält einen Teil der Pendenzen.",
+          "Einzelne Mitarbeitende führen zusätzliche persönliche Listen.",
+          "Eine neue Kollegin erkennt den aktuellen Stand nicht."
+        ],
+        "possible_m365_model": {
+          "team": "Campus & People Development",
+          "channels": [
+            "Allgemein",
+            "Leadership Forum",
+            "Learning Programme",
+            "Interne Organisation"
+          ],
+          "planner_buckets": [
+            "Konzeption",
+            "Referierende",
+            "Kommunikation",
+            "Organisation",
+            "Durchführung",
+            "Nachbereitung"
+          ]
+        }
+      },
+      "consulting_questions": [
+        "Welche Zusammenarbeit ist dauerhaft und gehört in das bestehende Team?",
+        "Wann braucht ein temporäres Projekt einen eigenen Arbeitsraum?",
+        "Soll das Leadership Forum ein eigener Kanal, ein eigenes Team oder nur eine Dateiablage sein?",
+        "Welche Entscheidungen müssen für neue Mitarbeitende später noch auffindbar sein?",
+        "Wie viel Struktur ist genug, ohne das Team zu überladen?"
+      ],
+      "training_hooks": {
+        "teams": "Eine neue Mitarbeiterin startet und muss aktuellen Stand, Unterlagen und Zuständigkeiten finden.",
+        "documents": "Ein Veranstaltungskonzept entwickelt sich vom persönlichen Entwurf zum gemeinsamen Referenzdokument.",
+        "planner": "Die Veranstaltungsreihe wird als gemeinsamer Arbeitsstand mit Verantwortung, Terminen und Status organisiert.",
+        "loop": "Arbeitsnotizen und offene Fragen aus der Vorbereitung bleiben gemeinsam aktuell.",
+        "digital_balance": "Nicht jede Änderung am Projekt soll bei allen sofort eine Benachrichtigung auslösen."
+      }
+    },
+    {
+      "id": "urban-health-analytics",
+      "type": "research-group",
+      "name": "Basel Center for Urban Health Analytics",
+      "tagline": "A research group with shared infrastructure and projects alongside substantial individual research work.",
+      "people": [
+        {
+          "name": "Prof. Dr. Elena Rossi",
+          "role": "Principal Investigator",
+          "focus": "Leitung der Forschungsgruppe"
+        },
+        {
+          "name": "Dr. David Frei",
+          "role": "Senior Researcher",
+          "focus": "Koordination mehrerer Forschungsprojekte"
+        },
+        {
+          "name": "Amira Hassan",
+          "role": "PhD Candidate",
+          "focus": "Luftqualität und Mobilität"
+        },
+        {
+          "name": "Lukas Gerber",
+          "role": "PhD Candidate",
+          "focus": "Hitzeinseln und Gesundheit"
+        },
+        {
+          "name": "Dr. Nina Petrović",
+          "role": "Postdoc",
+          "focus": "Statistische Modelle und Publikationen"
+        },
+        {
+          "name": "Marc Schneider",
+          "role": "Research Technician",
+          "focus": "Sensorik, Geräte und Datenerhebung"
+        },
+        {
+          "name": "Julia Weber",
+          "role": "Research Administration",
+          "focus": "Finanzen, Verträge, Reisekosten und Projektadministration"
+        }
+      ],
+      "shared_world": [
+        "Gruppensitzungen",
+        "Geräte und Sensoren",
+        "gemeinsame Infrastruktur",
+        "Onboarding",
+        "Reiseregeln",
+        "Projektanträge",
+        "Publikationsplanung",
+        "Konferenzen",
+        "gemeinsame Datenprozesse"
+      ],
+      "individual_world": [
+        "persönliche Notizen",
+        "Literatur",
+        "frühe Ideen und Analysen",
+        "eigene Entwürfe",
+        "individuelle Aufgaben"
+      ],
+      "current_scenario": {
+        "name": "Heat & Health Basel",
+        "description": "Vier Forschende arbeiten gemeinsam an einer Studie zu Hitzebelastung und Gesundheit.",
+        "artefacts": [
+          "Sensordaten",
+          "Analyse-Skripte",
+          "Paper-Entwurf",
+          "Präsentation",
+          "Feldarbeitsaufgaben",
+          "Meetingnotizen",
+          "administrative Deadlines"
+        ],
+        "bad_state": [
+          "Der Paper-Entwurf liegt im persönlichen OneDrive einer Person.",
+          "Feedback kommt als heruntergeladene Kopie zurück.",
+          "Literaturhinweise werden im Chat geteilt.",
+          "Sensor-Pendenzen stehen in einer separaten Excel-Liste.",
+          "Administrative Deadlines werden getrennt geführt.",
+          "Der gemeinsame Projektstand ist nicht sichtbar."
+        ],
+        "possible_m365_model": {
+          "team": "Urban Health Analytics",
+          "channels": [
+            "Allgemein",
+            "Infrastruktur & Geräte",
+            "Heat & Health Basel",
+            "Publikationen",
+            "Gruppenorganisation"
+          ]
+        }
+      },
+      "consulting_questions": [
+        "Was sollte gruppenweit sichtbar sein und was darf persönlich bleiben?",
+        "Wann wird aus einem persönlichen Entwurf ein gemeinsames Dokument?",
+        "Wie organisieren wir Geräte-, Infrastruktur- und Serviceinformationen?",
+        "Wann braucht ein Forschungsprojekt einen eigenen Arbeitsraum?",
+        "Wo hilft Planner und wo wäre er zusätzliche Bürokratie?",
+        "Wie integrieren wir externe Projektpartner ohne die Grundstruktur zu überladen?"
+      ],
+      "training_hooks": {
+        "teams": "Ein neuer PhD tritt der Gruppe bei und muss Infrastruktur, Gruppenwissen und laufende Projekte verstehen.",
+        "documents": "Ein persönlicher Manuskriptentwurf wird zu einer gemeinsamen Publikation mit mehreren Autor:innen.",
+        "planner": "Feldarbeit und Projektmeilensteine werden für mehrere Beteiligte sichtbar.",
+        "loop": "Meetingnotizen und Forschungsfragen entwickeln sich gemeinsam weiter.",
+        "digital_balance": "Die Forschungsgruppe trennt wichtige Projektupdates von allgemeinem Informationsrauschen."
+      }
+    },
+    {
+      "id": "nora-keller",
+      "type": "individual-knowledge-worker",
+      "name": "Dr. Nora Keller",
+      "tagline": "A mostly independent researcher and lecturer who collaborates selectively.",
+      "role": "Wissenschaftliche Mitarbeiterin, Institut für Europäische Geschichte",
+      "work_mix": {
+        "individual_percent": 70,
+        "examples": [
+          "Forschungsartikel",
+          "Seminar",
+          "Betreuung von Studierenden",
+          "kleine Arbeitsgruppe",
+          "gelegentliche Workshop-Organisation",
+          "Institutsmeetings"
+        ]
+      },
+      "personal_work": {
+        "onedrive": [
+          "Forschungsnotizen",
+          "frühe Manuskriptentwürfe",
+          "Lehrunterlagen in Vorbereitung",
+          "persönliche Arbeitsdokumente"
+        ],
+        "todo": [
+          "Artikel überarbeiten",
+          "Literatur bestellen",
+          "Feedback für Studentin",
+          "Reisekosten einreichen"
+        ]
+      },
+      "shared_contexts": [
+        "Institut für Europäische Geschichte",
+        "Workshop «Borders & Mobility»"
+      ],
+      "current_scenario": {
+        "name": "Vom persönlichen Entwurf zur gemeinsamen Publikation",
+        "stages": [
+          {
+            "stage": "Solo",
+            "recommendation_question": "Bleibt der Entwurf persönlich in OneDrive?"
+          },
+          {
+            "stage": "Punktuelles Feedback",
+            "recommendation_question": "Reicht gezieltes Teilen mit einer Kollegin?"
+          },
+          {
+            "stage": "Gemeinsame Autorenschaft",
+            "recommendation_question": "Braucht das Dokument nun einen gemeinsamen Projektkontext?"
+          }
+        ]
+      },
+      "consulting_questions": [
+        "Wann ist OneDrive ausreichend?",
+        "Wann lohnt sich ein gemeinsamer Teams-/SharePoint-Arbeitsraum?",
+        "Wie unterstützen Planner und To Do eine Person mit wenig kollaborativer Arbeit?",
+        "Wie vermeidet man sowohl 'alles persönlich' als auch unnötige Teams-Strukturen?",
+        "Wie verändert sich der richtige Speicherort, wenn aus persönlicher Arbeit gemeinsame Arbeit wird?"
+      ],
+      "boundary": "M365 bedeutet nicht, dass jede Arbeit kollaborativ werden muss. Persönliche Arbeit darf persönlich bleiben; gemeinsame Arbeit braucht einen gemeinsamen Kontext.",
+      "training_hooks": {
+        "teams": "Nora muss punktuell in einen gemeinsamen Projektarbeitsraum einsteigen, obwohl ihr Alltag überwiegend individuell ist.",
+        "documents": "Ein persönlicher Entwurf wird schrittweise zu einem gemeinsamen Arbeitsobjekt.",
+        "planner": "Persönliche Aufgaben bleiben in To Do; nur Verpflichtungen mit gemeinsamem Status gehören in Planner.",
+        "loop": "Für eine kleine Arbeitsgruppe entsteht ein geteilter, leichter Arbeitsstand ohne ein schweres Projektsystem.",
+        "digital_balance": "Nora braucht wenige, gezielte Signale statt permanente Kollaborationsbenachrichtigungen."
+      }
+    },
+    {
+      "id": "commission-digital-collaboration",
+      "type": "university-commission",
+      "name": "Kommission Digitale Zusammenarbeit",
+      "tagline": "A periodic cross-university governance body where simplicity matters more than maximum tooling.",
+      "people": [
+        {
+          "name": "Prof. Dr. Martina Vogel",
+          "role": "Vorsitz"
+        },
+        {
+          "name": "Dr. Samuel Meier",
+          "role": "Fakultätsvertretung"
+        },
+        {
+          "name": "Anna Keller",
+          "role": "Administration"
+        },
+        {
+          "name": "Dr. Karim Haddad",
+          "role": "Forschung"
+        },
+        {
+          "name": "Sarah Baumgartner",
+          "role": "IT Services"
+        },
+        {
+          "name": "Claudia Frei",
+          "role": "Sekretariat"
+        }
+      ],
+      "cadence": "Sechs Sitzungen pro Jahr",
+      "artefacts": [
+        "Agenda",
+        "Sitzungsunterlagen",
+        "Protokolle",
+        "Entscheide",
+        "Pendenzen"
+      ],
+      "current_scenario": {
+        "name": "Sitzungszyklus",
+        "description": "Unterlagen vorbereiten, diskutieren, Entscheide dokumentieren und wenige Pendenzen nachhalten.",
+        "possible_m365_model": {
+          "team": "Kommission Digitale Zusammenarbeit",
+          "channels": [
+            "Allgemein"
+          ],
+          "notes": "Bewusst einfache Struktur. Ein zusätzlicher Planner oder viele Kanäle sind nicht automatisch sinnvoll."
+        }
+      },
+      "consulting_questions": [
+        "Wie wenig Struktur reicht für eine Kommission aus?",
+        "Braucht dieses Gremium überhaupt Planner?",
+        "Wie bleiben Entscheide und Unterlagen dauerhaft auffindbar?",
+        "Wie verhindern wir Overengineering durch zu viele Kanäle, Labels und Apps?"
+      ],
+      "anti_pattern": "Nicht jedes Team braucht die maximale M365-Nutzung.",
+      "training_hooks": {
+        "teams": "Ein periodisches Gremium zeigt, warum ein bewusst einfacher Teamraum oft besser ist.",
+        "documents": "Unterlagen durchlaufen Vorbereitung, Kommentierung, Beratung und verabschiedeten Stand.",
+        "planner": "Eine einfache Pendenzlogik kann besser sein als ein komplexes Board.",
+        "loop": "Leichte gemeinsame Notizen können genügen, wenn die Kommission keine laufende operative Arbeit hat.",
+        "digital_balance": "Mitglieder brauchen nur Signale rund um Sitzungen und relevante Entscheide."
+      }
+    }
+  ]
+}
