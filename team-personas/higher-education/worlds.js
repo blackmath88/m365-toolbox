@@ -2543,151 +2543,871 @@ window.HE_WORLDS = {
  * Atlas layer: what the showcase UI (index.html) needs on top of the worlds above.
  * Keyed by world id. Same rules as above: edit freely, run  node check-worlds.mjs  afterwards.
  *
- * pattern     one of  continuous | mixed | solo | periodic | cyclic   (drives the little work-shape glyph)
- * tools[].role  valid | wrong | duplicate | dependency | specialist
- *   valid       hat weiterhin einen guten Platz
- *   wrong       wird für den falschen Job benutzt
- *   duplicate   zweite Quelle der Wahrheit
- *   dependency  persönliches Werkzeug, das zur Abhängigkeit geworden ist
- *   specialist  Spezialsystem, bleibt ausserhalb von M365
- * model.<pattern>  change / stay / m365 / outside  (null = nichts zu sagen, wird nicht gezeigt)
- * picks       ids of decision points (scenario.decision_points) shown as «Unsere Wahl für diesen Kontext»
- * anti        what not to do
- * outside     third zone in the personal → shared → outside track
+ * pattern     continuous | mixed | solo | periodic | cyclic      (signature glyph)
+ * flow        how the work moves:  sequence {steps, loop}  or  overlay {base, overlay.steps}
+ *             step.z = zone of that step: personal | shared | institutional | outside
+ * map         outside / external_people: person ids;  temporary: collaboration strings that are time-boxed
+ * tools[]     role: valid | wrong | duplicate | dependency | specialist
+ *             kind: mail | calendar | table | doc | chat | list | people | folder | laptop | building | box  (icon)
+ * shifts[]    "heute → besseres Modell", each tied to real data: ref = artefact id (or null)
+ *             kind: move (changes) | stay (deliberately stays);  zone: where it lives afterwards
+ * zones       what lives in the institutional zone and in specialist systems outside M365
+ * model.<pattern>  change / stay / m365 / outside   (null = nothing to say)
+ * picks       decision-point ids shown as «Unsere Wahl für diesen Kontext»
  */
 window.HE_ATLAS = {
   "campus-people-development": {
-    label: "Verwaltungsteam",
-    shape: "Festes Team, dazu ein befristetes Projekt",
-    pattern: "continuous",
-    footprint: "1 Team · 4 Kanäle · Planner",
-    rhythm_steps: ["Wochenbetrieb", "Vorbereitung ab Herbst 2026", "Sechs Termine 2027", "Nachbereitung 2028"],
-    map: { outside: ["regula-aebi"], outside_label: "gehört zu HR Services, nicht zum Team", external_people: [] },
-    tools: [
-      { name: "E-Mail", use: "Termine abstimmen, Entwürfe und Anhänge verteilen", role: "wrong" },
-      { name: "Outlook-Kalender", use: "Termine und Räume", role: "valid" },
-      { name: "Excel", use: "Veranstaltungsplan, Referierende, Budget: je nach Person eine andere Fassung", role: "duplicate" },
-      { name: "Word-Dateien", use: "Einladungen wie «Einladung_v3_final_HR»", role: "duplicate" },
-      { name: "Chat", use: "Hier fallen Entscheide, später findet sie niemand", role: "wrong" },
-      { name: "Persönliche Listen", use: "Pendenzen einzelner Personen, für andere unsichtbar", role: "dependency" },
-      { name: "Anmeldesystem", use: "Anmeldungen der Teilnehmenden", role: "specialist" }
-    ],
-    model: {
-      communication: { change: "Entscheide und Stand wandern in den Forum-Kanal, mit dem Ergebnis im Titel.", stay: "Chat für Kurzabsprachen zu zweit.", m365: "Kanalbeiträge, Chat, Teams-Meetings.", outside: "Einladungen an Externe und Freigaben von HR laufen weiter per Mail." },
-      documents: { change: "Eine Fassung pro Dokument im Kanal. Link statt Anhang.", stay: "Rohkonzepte und Textentwürfe bleiben bei der Person, bis sie abgestimmt sind.", m365: "Dateien im Team, OneDrive für Entwürfe, Versionsverlauf.", outside: "Anmeldedaten gehören ins Anmeldesystem, nicht in eine Liste im Kanal." },
-      tasks: { change: "Gemeinsame Pendenzen mit Verantwortung und Termin in einen Plan.", stay: "Persönliche To-dos bleiben in To Do.", m365: "Planner im Forum-Team, To Do persönlich.", outside: null },
-      knowledge: { change: "Die Einarbeitungsliste lebt als Loop-Seite weiter, nicht als Mail mit zwölf Anhängen.", stay: "Verbindliche Informationen der Universität bleiben dort, wo sie veröffentlicht werden.", m365: "Loop-Seite im Kanal «Interne Organisation».", outside: null },
-      attention: { change: "Der Stand steht vor dem Montagsmeeting im Kanal, nicht erst darin.", stay: "Montagsmeeting und Forum-Termine.", m365: "Kalenderserie, Teams-Meeting, Benachrichtigungen für den Forum-Kanal bewusst setzen.", outside: null }
+    "label": "Verwaltungsteam",
+    "shape": "Festes Team, dazu ein befristetes Projekt",
+    "pattern": "continuous",
+    "footprint": "1 Team · 4 Kanäle · Planner",
+    "flow": {
+      "type": "overlay",
+      "base": {
+        "label": "Team, dauerhaft",
+        "text": "Wochenbetrieb mit Jahreszyklus"
+      },
+      "overlay": {
+        "label": "Leadership Forum 2027, befristet",
+        "steps": [
+          {
+            "t": "Konzeption",
+            "z": "shared",
+            "n": "Herbst 2026"
+          },
+          {
+            "t": "Durchführung",
+            "z": "shared",
+            "n": "sechs Termine 2027"
+          },
+          {
+            "t": "Nachbereitung",
+            "z": "shared",
+            "n": "Anfang 2028, danach archivieren"
+          }
+        ]
+      }
     },
-    outside: ["Anmeldedaten der Teilnehmenden: Anmeldesystem der Universität", "Teilnehmendenkreis und Nominationen: bleiben bei HR Services"],
-    picks: ["lf-where", "lf-decisions-visible", "lf-external-trainers", "lf-planner"],
-    anti: ["Ein Team pro Termin", "Externe als Gäste ins ganze Forum-Team einladen", "Chat-Anhänge als Verteilweg für Präsentationen"]
+    "map": {
+      "outside": [
+        "regula-aebi"
+      ],
+      "outside_label": "gehört zu HR Services, nicht zum Team",
+      "external_people": [],
+      "temporary": [
+        "Externe Trainer:innen und Referierende, jeweils nur für ihre Session"
+      ]
+    },
+    "tools": [
+      {
+        "name": "E-Mail",
+        "use": "Termine abstimmen, Entwürfe und Anhänge verteilen",
+        "role": "wrong",
+        "kind": "mail"
+      },
+      {
+        "name": "Outlook-Kalender",
+        "use": "Termine und Räume",
+        "role": "valid",
+        "kind": "calendar"
+      },
+      {
+        "name": "Excel",
+        "use": "Veranstaltungsplan, Referierende, Budget: je nach Person eine andere Fassung",
+        "role": "duplicate",
+        "kind": "table"
+      },
+      {
+        "name": "Word-Dateien",
+        "use": "Einladungen wie «Einladung_v3_final_HR»",
+        "role": "duplicate",
+        "kind": "doc"
+      },
+      {
+        "name": "Chat",
+        "use": "Hier fallen Entscheide, später findet sie niemand",
+        "role": "wrong",
+        "kind": "chat"
+      },
+      {
+        "name": "Persönliche Listen",
+        "use": "Pendenzen einzelner Personen, für andere unsichtbar",
+        "role": "dependency",
+        "kind": "list"
+      },
+      {
+        "name": "Anmeldesystem",
+        "use": "Anmeldungen der Teilnehmenden",
+        "role": "specialist",
+        "kind": "box"
+      }
+    ],
+    "shifts": [
+      {
+        "from": "Veranstaltungsplan als Excel per Mail, drei Fassungen",
+        "role": "duplicate",
+        "to": "Eine Tabelle im Forum-Kanal, Link statt Anhang",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "veranstaltungsplan"
+      },
+      {
+        "from": "Entscheide fallen im Chat",
+        "role": "wrong",
+        "to": "Kanalbeitrag mit dem Ergebnis im Titel",
+        "zone": "shared",
+        "kind": "move",
+        "ref": null
+      },
+      {
+        "from": "Excel-Pendenzliste und persönliche Listen",
+        "role": "duplicate",
+        "to": "Planner für gemeinsame Pendenzen, To Do für persönliche",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "pendenzen"
+      },
+      {
+        "from": "Rohkonzepte und Textentwürfe",
+        "role": "valid",
+        "to": "Bleiben persönlich, bis sie abgestimmt sind",
+        "zone": "personal",
+        "kind": "stay",
+        "ref": null
+      },
+      {
+        "from": "Anmeldedaten der Teilnehmenden",
+        "role": "specialist",
+        "to": "Bleiben im Anmeldesystem der Universität",
+        "zone": "outside",
+        "kind": "stay",
+        "ref": null
+      }
+    ],
+    "zones": {
+      "institutional": [
+        "Teilnehmendenkreis und Freigaben: bleiben bei HR Services"
+      ],
+      "outside": [
+        "Anmeldedaten der Teilnehmenden: Anmeldesystem der Universität"
+      ]
+    },
+    "model": {
+      "communication": {
+        "change": "Entscheide und Stand wandern in den Forum-Kanal, mit dem Ergebnis im Titel.",
+        "stay": "Chat für Kurzabsprachen zu zweit.",
+        "m365": "Kanalbeiträge, Chat, Teams-Meetings.",
+        "outside": "Einladungen an Externe und Freigaben von HR laufen weiter per Mail."
+      },
+      "documents": {
+        "change": "Eine Fassung pro Dokument im Kanal. Link statt Anhang.",
+        "stay": "Rohkonzepte und Textentwürfe bleiben bei der Person, bis sie abgestimmt sind.",
+        "m365": "Dateien im Team, OneDrive für Entwürfe, Versionsverlauf.",
+        "outside": "Anmeldedaten gehören ins Anmeldesystem, nicht in eine Liste im Kanal."
+      },
+      "tasks": {
+        "change": "Gemeinsame Pendenzen mit Verantwortung und Termin in einen Plan.",
+        "stay": "Persönliche To-dos bleiben in To Do.",
+        "m365": "Planner im Forum-Team, To Do persönlich.",
+        "outside": null
+      },
+      "knowledge": {
+        "change": "Die Einarbeitungsliste lebt als Loop-Seite weiter, nicht als Mail mit zwölf Anhängen.",
+        "stay": "Verbindliche Informationen der Universität bleiben dort, wo sie veröffentlicht werden.",
+        "m365": "Loop-Seite im Kanal «Interne Organisation».",
+        "outside": null
+      },
+      "attention": {
+        "change": "Der Stand steht vor dem Montagsmeeting im Kanal, nicht erst darin.",
+        "stay": "Montagsmeeting und Forum-Termine.",
+        "m365": "Kalenderserie, Teams-Meeting, Benachrichtigungen für den Forum-Kanal bewusst setzen.",
+        "outside": null
+      }
+    },
+    "picks": [
+      "lf-where",
+      "lf-decisions-visible",
+      "lf-external-trainers",
+      "lf-planner"
+    ],
+    "anti": [
+      "Ein Team pro Termin",
+      "Externe als Gäste ins ganze Forum-Team einladen",
+      "Chat-Anhänge als Verteilweg für Präsentationen"
+    ]
   },
-
   "urban-health-analytics": {
-    label: "Forschungsgruppe",
-    shape: "Dauergruppe, befristete Projekte, viel Einzelarbeit",
-    pattern: "mixed",
-    footprint: "1 Team · 5 Kanäle · Planner nur für die Feldkampagne",
-    rhythm_steps: ["Gruppenmeeting wöchentlich", "Projekte über 2–3 Jahre", "Feldkampagne im Sommer", "Personen wechseln alle 2–4 Jahre"],
-    map: { outside: [], outside_label: "", external_people: [] },
-    tools: [
-      { name: "Persönliches OneDrive", use: "Das Paper wächst in Ninas OneDrive, Feedback kommt als Kopie", role: "dependency" },
-      { name: "Chat und E-Mail", use: "Paper-Anhänge, Literaturhinweise, Skript-Versionen", role: "wrong" },
-      { name: "Lokale Platten, USB-Stick", use: "Sensordaten, Skripte, Präsentationen", role: "dependency" },
-      { name: "Excel-Listen", use: "Feldarbeit und Sensor-Logbuch, nachgeführt von Marc", role: "dependency" },
-      { name: "Papier am Gerät", use: "Messprotokolle und Kalibrierung", role: "valid" },
-      { name: "Institutslaufwerk", use: "Pseudonymisierte Gesundheitsdaten, Auszüge als Excel", role: "wrong" },
-      { name: "Forschungsdateninfrastruktur", use: "Rohdaten, Gesundheitsdaten", role: "specialist" },
-      { name: "Versionsverwaltung", use: "Analyse-Skripte der Gruppe", role: "specialist" }
-    ],
-    model: {
-      communication: { change: "Gruppenorganisation und Arbeitsbereiche bekommen je einen Kanal. Literatur und Absprachen landen dort statt im Chat.", stay: "Chat für Kurzes zwischen zwei Personen.", m365: "Ein Team, fünf Kanäle nach Arbeitsbereich.", outside: "Quartalsupdate an den Datenpartner: Mail mit Link, kein Gastzugang." },
-      documents: { change: "Das Paper zieht ab drei Beteiligten in den Kanal um. Die Coautorin bekommt einen Link auf genau diese Datei.", stay: "Skripte und frühe Entwürfe bleiben bei der Person.", m365: "OneDrive für Entwürfe, Kanaldateien für Gemeinsames, Link statt Kopie.", outside: "Rohdaten und Gesundheitsdaten: Forschungsinfrastruktur. Im Kanal nur Beschreibung, Pfad, aggregierte Resultate." },
-      tasks: { change: "Die Feldarbeit wird ein Planner-Plan, nur für die Kampagne.", stay: "Formularfristen und Reisetermine bleiben im Kalender, nicht in Planner.", m365: "Planner (Kampagne), gemeinsamer Kalender, To Do persönlich.", outside: null },
-      knowledge: { change: "Meetingnotizen werden eine Seite, in die alle schauen.", stay: "Das Papierprotokoll am Gerät, wo es besser funktioniert.", m365: "Loop-Seite oder Dokument im Kanal «Gruppenorganisation».", outside: null },
-      attention: { change: "Geräte werden als Ressource im Kalender gebucht, nicht per Zuruf.", stay: "Das wöchentliche Gruppenmeeting.", m365: "Ressourcenkalender pro Gerät, Teams-Meeting für das Gruppenmeeting.", outside: null }
+    "label": "Forschungsgruppe",
+    "shape": "Dauergruppe, befristete Projekte, viel Einzelarbeit",
+    "pattern": "mixed",
+    "footprint": "1 Team · 5 Kanäle · Planner nur für die Feldkampagne",
+    "flow": {
+      "type": "sequence",
+      "loop": null,
+      "steps": [
+        {
+          "t": "Eigene Forschung",
+          "z": "personal",
+          "n": "Analysen, Skripte, Entwürfe"
+        },
+        {
+          "t": "Gemeinsames Projekt",
+          "z": "shared",
+          "n": "Paper, Geräte, Feldkampagne"
+        },
+        {
+          "t": "Publikation",
+          "z": "institutional",
+          "n": "Rohdaten bleiben in der Forschungsinfrastruktur"
+        }
+      ]
     },
-    outside: ["Sensor-Rohdaten und Gesundheitsdaten: Forschungsdateninfrastruktur der Universität", "Analyse-Skripte: Versionsverwaltung", "Messprotokoll auf Papier, wenn es am Gerät besser funktioniert"],
-    picks: ["hh-chat-attachment", "hh-research-data", "hh-external-partner", "hh-fieldwork-tasks"],
-    anti: ["Grosse Rohdaten oder Gesundheitsdaten «kurz» in Teams oder SharePoint ablegen", "Den Datenpartner als Gast ins ganze Gruppenteam einladen", "Ein dauerhafter Planner-Plan für alles, was in der Gruppe anfällt"]
+    "map": {
+      "outside": [],
+      "outside_label": "",
+      "external_people": [],
+      "temporary": []
+    },
+    "tools": [
+      {
+        "name": "Persönliches OneDrive",
+        "use": "Das Paper wächst in Ninas OneDrive, Feedback kommt als Kopie",
+        "role": "dependency",
+        "kind": "folder"
+      },
+      {
+        "name": "Chat und E-Mail",
+        "use": "Paper-Anhänge, Literaturhinweise, Skript-Versionen",
+        "role": "wrong",
+        "kind": "mail"
+      },
+      {
+        "name": "Lokale Platten, USB-Stick",
+        "use": "Sensordaten, Skripte, Präsentationen",
+        "role": "dependency",
+        "kind": "laptop"
+      },
+      {
+        "name": "Excel-Listen",
+        "use": "Feldarbeit und Sensor-Logbuch, nachgeführt von Marc",
+        "role": "dependency",
+        "kind": "table"
+      },
+      {
+        "name": "Papier am Gerät",
+        "use": "Messprotokolle und Kalibrierung",
+        "role": "valid",
+        "kind": "doc"
+      },
+      {
+        "name": "Institutslaufwerk",
+        "use": "Pseudonymisierte Gesundheitsdaten, Auszüge als Excel",
+        "role": "wrong",
+        "kind": "folder"
+      },
+      {
+        "name": "Forschungsdateninfrastruktur",
+        "use": "Rohdaten, Gesundheitsdaten",
+        "role": "specialist",
+        "kind": "box"
+      },
+      {
+        "name": "Versionsverwaltung",
+        "use": "Analyse-Skripte der Gruppe",
+        "role": "specialist",
+        "kind": "box"
+      }
+    ],
+    "shifts": [
+      {
+        "from": "Paper im OneDrive einer Person, Feedback als Kopie",
+        "role": "dependency",
+        "to": "Datei im Kanal «Publikationen», Link auf genau diese Datei",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "paper-entwurf"
+      },
+      {
+        "from": "Gerätebuchung per Zuruf und Chat",
+        "role": "wrong",
+        "to": "Ressourcenkalender pro Gerät",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "geraetebuchung"
+      },
+      {
+        "from": "Feldarbeit in einer Excel-Liste",
+        "role": "dependency",
+        "to": "Planner-Plan, nur für die Kampagne",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "feldarbeitsaufgaben"
+      },
+      {
+        "from": "Skripte und frühe Entwürfe",
+        "role": "valid",
+        "to": "Bleiben bei der Person",
+        "zone": "personal",
+        "kind": "stay",
+        "ref": "analyse-skripte"
+      },
+      {
+        "from": "Sensordaten und Gesundheitsdaten",
+        "role": "specialist",
+        "to": "Bleiben in der Forschungsdateninfrastruktur, im Kanal nur Beschreibung und Link",
+        "zone": "outside",
+        "kind": "stay",
+        "ref": "sensordaten"
+      }
+    ],
+    "zones": {
+      "institutional": [
+        "Forschungsadministration der Fakultät und Ethikkommission bleiben eigene Stellen"
+      ],
+      "outside": [
+        "Sensor-Rohdaten und Gesundheitsdaten: Forschungsdateninfrastruktur der Universität",
+        "Analyse-Skripte: Versionsverwaltung",
+        "Messprotokoll auf Papier, wenn es am Gerät besser funktioniert"
+      ]
+    },
+    "model": {
+      "communication": {
+        "change": "Gruppenorganisation und Arbeitsbereiche bekommen je einen Kanal. Literatur und Absprachen landen dort statt im Chat.",
+        "stay": "Chat für Kurzes zwischen zwei Personen.",
+        "m365": "Ein Team, fünf Kanäle nach Arbeitsbereich.",
+        "outside": "Quartalsupdate an den Datenpartner: Mail mit Link, kein Gastzugang."
+      },
+      "documents": {
+        "change": "Das Paper zieht ab drei Beteiligten in den Kanal um. Die Coautorin bekommt einen Link auf genau diese Datei.",
+        "stay": "Skripte und frühe Entwürfe bleiben bei der Person.",
+        "m365": "OneDrive für Entwürfe, Kanaldateien für Gemeinsames, Link statt Kopie.",
+        "outside": "Rohdaten und Gesundheitsdaten: Forschungsinfrastruktur. Im Kanal nur Beschreibung, Pfad, aggregierte Resultate."
+      },
+      "tasks": {
+        "change": "Die Feldarbeit wird ein Planner-Plan, nur für die Kampagne.",
+        "stay": "Formularfristen und Reisetermine bleiben im Kalender, nicht in Planner.",
+        "m365": "Planner (Kampagne), gemeinsamer Kalender, To Do persönlich.",
+        "outside": null
+      },
+      "knowledge": {
+        "change": "Meetingnotizen werden eine Seite, in die alle schauen.",
+        "stay": "Das Papierprotokoll am Gerät, wo es besser funktioniert.",
+        "m365": "Loop-Seite oder Dokument im Kanal «Gruppenorganisation».",
+        "outside": null
+      },
+      "attention": {
+        "change": "Geräte werden als Ressource im Kalender gebucht, nicht per Zuruf.",
+        "stay": "Das wöchentliche Gruppenmeeting.",
+        "m365": "Ressourcenkalender pro Gerät, Teams-Meeting für das Gruppenmeeting.",
+        "outside": null
+      }
+    },
+    "picks": [
+      "hh-chat-attachment",
+      "hh-research-data",
+      "hh-external-partner",
+      "hh-fieldwork-tasks"
+    ],
+    "anti": [
+      "Grosse Rohdaten oder Gesundheitsdaten «kurz» in Teams oder SharePoint ablegen",
+      "Den Datenpartner als Gast ins ganze Gruppenteam einladen",
+      "Ein dauerhafter Planner-Plan für alles, was in der Gruppe anfällt"
+    ]
   },
-
   "nora-keller": {
-    label: "Einzelne Forscherin",
-    shape: "Meist allein, Zusammenarbeit als Ereignis",
-    pattern: "solo",
-    footprint: "Kein Team · OneDrive und To Do",
-    rhythm_steps: ["Semesterrhythmus", "Schreibphasen in den Semesterferien", "Workshop einmal im Jahr", "Coautorin ab Herbst"],
-    map: { outside: [], outside_label: "", external_people: [] },
-    tools: [
-      { name: "OneDrive", use: "Notizen, Entwürfe, Lehrunterlagen", role: "valid" },
-      { name: "Word", use: "Manuskripte", role: "valid" },
-      { name: "E-Mail", use: "Würde zum Hin- und Herschicken von Fassungen mit der Coautorin", role: "wrong" },
-      { name: "Postfach", use: "Bei Abwesenheit die einzige Übersicht über Dringendes", role: "dependency" },
-      { name: "Chat mit dem Sekretariat", use: "Honorarfragen zum Workshop", role: "wrong" },
-      { name: "Lernplattform der Universität", use: "Seminarmaterial, Abgaben, Bewertungen", role: "specialist" }
-    ],
-    model: {
-      communication: { change: "Die Coautorin kommentiert direkt in der Datei, nicht per Mail.", stay: "Mail für Studierende und Externe.", m365: "Kommentare im Dokument, Outlook.", outside: "Studierende erreicht sie über die Lernplattform." },
-      documents: { change: "Erst wenn die Coautorin einsteigt: ein Link mit Bearbeitungsrecht auf die Datei in OneDrive.", stay: "Notizen, Entwürfe und Lehrunterlagen bleiben persönlich in OneDrive.", m365: "OneDrive. Workshop-Unterlagen in einem Ordner der Institutsablage.", outside: "Abgaben und Bewertungen: System der Universität." },
-      tasks: { change: null, stay: "Die eigene To-do-Liste.", m365: "Microsoft To Do. Kein Planner.", outside: null },
-      knowledge: { change: "Eine Übergabeseite für Abwesenheit: Termine, Betreuungen, wenige freigegebene Dateien.", stay: "Forschungsnotizen bleiben persönlich.", m365: "Eine Seite oder ein Dokument. Das OneDrive bleibt zu.", outside: null },
-      attention: { change: null, stay: "Semester- und Schreibrhythmus bestimmen den Kalender.", m365: "Outlook-Kalender, Serie für den Workshop, Abwesenheitsnotiz.", outside: null }
+    "label": "Einzelne Forscherin",
+    "shape": "Meist allein, Zusammenarbeit als Ereignis",
+    "pattern": "solo",
+    "footprint": "Kein Team · OneDrive und To Do",
+    "flow": {
+      "type": "sequence",
+      "loop": null,
+      "steps": [
+        {
+          "t": "Persönlicher Entwurf",
+          "z": "personal",
+          "n": "Monate allein"
+        },
+        {
+          "t": "Feedback",
+          "z": "shared",
+          "n": "Link statt Kopie"
+        },
+        {
+          "t": "Co-Autorschaft",
+          "z": "shared",
+          "n": "ab Herbst"
+        },
+        {
+          "t": "Gemeinsame Publikation",
+          "z": "shared",
+          "n": "erst jetzt ein gemeinsamer Ort"
+        }
+      ]
     },
-    outside: ["Seminarmaterial und Feedback an Studierende: Lernplattform der Universität", "Abgegebene Fassungen und Bewertungen: System der Universität"],
-    picks: ["nk-coauthor", "nk-stay"],
-    anti: ["Ein Team gründen, nur weil ein Artikel zwei Autorinnen hat", "Alles vorsorglich in ein Team schieben, damit es «sauber» ist", "Ein Projektteam für jedes Forschungsthema"]
+    "map": {
+      "outside": [],
+      "outside_label": "",
+      "external_people": [],
+      "temporary": [
+        "Referierende des Workshops"
+      ]
+    },
+    "tools": [
+      {
+        "name": "OneDrive",
+        "use": "Notizen, Entwürfe, Lehrunterlagen",
+        "role": "valid",
+        "kind": "folder"
+      },
+      {
+        "name": "Word",
+        "use": "Manuskripte",
+        "role": "valid",
+        "kind": "doc"
+      },
+      {
+        "name": "E-Mail",
+        "use": "Würde zum Hin- und Herschicken von Fassungen mit der Coautorin",
+        "role": "wrong",
+        "kind": "mail"
+      },
+      {
+        "name": "Postfach",
+        "use": "Bei Abwesenheit die einzige Übersicht über Dringendes",
+        "role": "dependency",
+        "kind": "mail"
+      },
+      {
+        "name": "Chat mit dem Sekretariat",
+        "use": "Honorarfragen zum Workshop",
+        "role": "wrong",
+        "kind": "chat"
+      },
+      {
+        "name": "Lernplattform der Universität",
+        "use": "Seminarmaterial, Abgaben, Bewertungen",
+        "role": "specialist",
+        "kind": "building"
+      }
+    ],
+    "shifts": [
+      {
+        "from": "Fassungen per Mail zwischen Basel und der Coautorin",
+        "role": "wrong",
+        "to": "Link mit Bearbeitungsrecht auf die Datei in OneDrive",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "gemeinsamer-artikel"
+      },
+      {
+        "from": "Übergabe bei Abwesenheit liegt im Postfach",
+        "role": "dependency",
+        "to": "Eine Übergabeseite mit Terminen und Betreuungen",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "uebergabe-notiz"
+      },
+      {
+        "from": "Notizen, Entwürfe, Lehrunterlagen",
+        "role": "valid",
+        "to": "Bleiben in OneDrive, ohne weitere Struktur",
+        "zone": "personal",
+        "kind": "stay",
+        "ref": "forschungsnotizen"
+      },
+      {
+        "from": "Workshop: Word, Mail und Chat",
+        "role": "duplicate",
+        "to": "Ordner in der Institutsablage, Outlook-Serie für die Termine",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "workshop-unterlagen"
+      },
+      {
+        "from": "Abgaben und Bewertungen",
+        "role": "specialist",
+        "to": "Bleiben im System der Universität",
+        "zone": "institutional",
+        "kind": "stay",
+        "ref": "betreuungsfeedback"
+      }
+    ],
+    "zones": {
+      "institutional": [
+        "Seminarmaterial und Feedback an Studierende: Lernplattform der Universität",
+        "Abgegebene Fassungen und Bewertungen: System der Universität"
+      ],
+      "outside": []
+    },
+    "model": {
+      "communication": {
+        "change": "Die Coautorin kommentiert direkt in der Datei, nicht per Mail.",
+        "stay": "Mail für Studierende und Externe.",
+        "m365": "Kommentare im Dokument, Outlook.",
+        "outside": "Studierende erreicht sie über die Lernplattform."
+      },
+      "documents": {
+        "change": "Erst wenn die Coautorin einsteigt: ein Link mit Bearbeitungsrecht auf die Datei in OneDrive.",
+        "stay": "Notizen, Entwürfe und Lehrunterlagen bleiben persönlich in OneDrive.",
+        "m365": "OneDrive. Workshop-Unterlagen in einem Ordner der Institutsablage.",
+        "outside": "Abgaben und Bewertungen: System der Universität."
+      },
+      "tasks": {
+        "change": null,
+        "stay": "Die eigene To-do-Liste.",
+        "m365": "Microsoft To Do. Kein Planner.",
+        "outside": null
+      },
+      "knowledge": {
+        "change": "Eine Übergabeseite für Abwesenheit: Termine, Betreuungen, wenige freigegebene Dateien.",
+        "stay": "Forschungsnotizen bleiben persönlich.",
+        "m365": "Eine Seite oder ein Dokument. Das OneDrive bleibt zu.",
+        "outside": null
+      },
+      "attention": {
+        "change": null,
+        "stay": "Semester- und Schreibrhythmus bestimmen den Kalender.",
+        "m365": "Outlook-Kalender, Serie für den Workshop, Abwesenheitsnotiz.",
+        "outside": null
+      }
+    },
+    "picks": [
+      "nk-coauthor",
+      "nk-stay"
+    ],
+    "anti": [
+      "Ein Team gründen, nur weil ein Artikel zwei Autorinnen hat",
+      "Alles vorsorglich in ein Team schieben, damit es «sauber» ist",
+      "Ein Projektteam für jedes Forschungsthema"
+    ]
   },
-
   "commission-digital-collaboration": {
-    label: "Kommission",
-    shape: "Sechs Sitzungen im Jahr, Mitglieder wechseln gestaffelt",
-    pattern: "periodic",
-    footprint: "1 Team · 1 Kanal · kein Planner",
-    rhythm_steps: ["Unterlagen eine Woche vorher", "Sitzung, sechsmal im Jahr", "Protokoll und Entscheide", "Dazwischen kaum Austausch"],
-    map: { outside: [], outside_label: "", external_people: ["beat-kunz"] },
-    tools: [
-      { name: "E-Mail mit Anhang", use: "Agenda und Unterlagen an sieben Personen, drei haben sie «nicht erhalten»", role: "wrong" },
-      { name: "Word-Dateien", use: "Agenda in der Fassung «v2_nach_Rückmeldung_Vogel»", role: "duplicate" },
-      { name: "Mailverteiler", use: "Von Hand gepflegt, stimmt nicht mit der Mitgliederliste überein", role: "duplicate" },
-      { name: "Netzlaufwerk des Sekretariats", use: "Protokolle, Mitglieder bekommen PDF-Kopien per Mail", role: "valid" }
-    ],
-    model: {
-      communication: { change: "Mail nur noch als Hinweis mit Link.", stay: "Mail bleibt der Weg für Einladung und Hinweis.", m365: "Ein Team, ein Kanal «Allgemein».", outside: "Beschlüsse gehen auf dem offiziellen Weg an die Universitätsleitung." },
-      documents: { change: "Ein Ordner pro Sitzung. Die beschlossene Fassung wird als PDF eingefroren.", stay: "Das Sekretariat pflegt Agenda und Protokoll.", m365: "Bibliothek im Team, Versionsverlauf, Link statt Anhang.", outside: null },
-      tasks: { change: "Vor jeder Sitzung fragt das Sekretariat bei den Verantwortlichen nach.", stay: "Die Pendenzentabelle am Ende des Protokolls.", m365: "Kein Planner: acht Pendenzen im Jahr.", outside: null },
-      knowledge: { change: "Entscheide stehen in einer Übersichtstabelle mit Link zum Protokoll.", stay: "Das Protokoll bleibt das verbindliche Dokument.", m365: "Tabelle in der Bibliothek.", outside: null },
-      attention: { change: null, stay: "Sechs Sitzungen im Jahr, dazwischen Ruhe.", m365: "Sitzungsserie im Kalender. Keine Dauerbenachrichtigungen.", outside: null }
+    "label": "Kommission",
+    "shape": "Sechs Sitzungen im Jahr, Mitglieder wechseln gestaffelt",
+    "pattern": "periodic",
+    "footprint": "1 Team · 1 Kanal · kein Planner",
+    "flow": {
+      "type": "sequence",
+      "loop": "nächste Sitzung",
+      "steps": [
+        {
+          "t": "Vorbereiten",
+          "z": "shared",
+          "n": "Unterlagen eine Woche vorher"
+        },
+        {
+          "t": "Sitzung",
+          "z": "shared",
+          "n": "sechsmal im Jahr"
+        },
+        {
+          "t": "Entscheid",
+          "z": "institutional",
+          "n": "Protokoll, Entscheidtabelle"
+        },
+        {
+          "t": "Pendenzen",
+          "z": "shared",
+          "n": "Tabelle im Protokoll"
+        },
+        {
+          "t": "Archiv",
+          "z": "institutional",
+          "n": "PDF, Ordner nach Jahr"
+        }
+      ]
     },
-    outside: ["Beschlüsse an die Universitätsleitung: offizieller Weg, nicht der Kanal"],
-    picks: ["cm-team", "cm-documents", "cm-pendenzen", "cm-external"],
-    anti: ["Ein Planner-Board für acht Pendenzen im Jahr", "Viele Kanäle, von denen nach zwei Sitzungen drei leer bleiben", "Altmitglieder im Team lassen, «sie lesen ja nichts mehr»"]
+    "map": {
+      "outside": [],
+      "outside_label": "",
+      "external_people": [
+        "beat-kunz"
+      ],
+      "temporary": []
+    },
+    "tools": [
+      {
+        "name": "E-Mail mit Anhang",
+        "use": "Agenda und Unterlagen an sieben Personen, drei haben sie «nicht erhalten»",
+        "role": "wrong",
+        "kind": "mail"
+      },
+      {
+        "name": "Word-Dateien",
+        "use": "Agenda in der Fassung «v2_nach_Rückmeldung_Vogel»",
+        "role": "duplicate",
+        "kind": "doc"
+      },
+      {
+        "name": "Mailverteiler",
+        "use": "Von Hand gepflegt, stimmt nicht mit der Mitgliederliste überein",
+        "role": "duplicate",
+        "kind": "people"
+      },
+      {
+        "name": "Netzlaufwerk des Sekretariats",
+        "use": "Protokolle, Mitglieder bekommen PDF-Kopien per Mail",
+        "role": "valid",
+        "kind": "folder"
+      }
+    ],
+    "shifts": [
+      {
+        "from": "Unterlagen als Mailanhang an sieben Personen",
+        "role": "wrong",
+        "to": "Ordner pro Sitzung, Mail nur mit Link",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "sitzungsunterlagen"
+      },
+      {
+        "from": "Agenda in jeder Woche eine neue Version",
+        "role": "duplicate",
+        "to": "Eine Datei in der Bibliothek, vom Sekretariat gepflegt",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "agenda"
+      },
+      {
+        "from": "Entscheide nur in Protokollen auffindbar",
+        "role": "dependency",
+        "to": "Übersichtstabelle mit Link zum Protokoll",
+        "zone": "institutional",
+        "kind": "move",
+        "ref": "entscheide"
+      },
+      {
+        "from": "Pendenzen am Ende des Protokolls",
+        "role": "valid",
+        "to": "Bleiben so, kein Planner für acht Pendenzen",
+        "zone": "shared",
+        "kind": "stay",
+        "ref": "pendenzen"
+      },
+      {
+        "from": "Mailverteiler von Hand gepflegt",
+        "role": "duplicate",
+        "to": "Teammitglieder entsprechen der Mitgliederliste",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "mitgliederliste"
+      }
+    ],
+    "zones": {
+      "institutional": [
+        "Protokolle: verabschiedete Fassung als PDF im Archiv",
+        "Beschlüsse an die Universitätsleitung: offizieller Weg"
+      ],
+      "outside": []
+    },
+    "model": {
+      "communication": {
+        "change": "Mail nur noch als Hinweis mit Link.",
+        "stay": "Mail bleibt der Weg für Einladung und Hinweis.",
+        "m365": "Ein Team, ein Kanal «Allgemein».",
+        "outside": "Beschlüsse gehen auf dem offiziellen Weg an die Universitätsleitung."
+      },
+      "documents": {
+        "change": "Ein Ordner pro Sitzung. Die beschlossene Fassung wird als PDF eingefroren.",
+        "stay": "Das Sekretariat pflegt Agenda und Protokoll.",
+        "m365": "Bibliothek im Team, Versionsverlauf, Link statt Anhang.",
+        "outside": null
+      },
+      "tasks": {
+        "change": "Vor jeder Sitzung fragt das Sekretariat bei den Verantwortlichen nach.",
+        "stay": "Die Pendenzentabelle am Ende des Protokolls.",
+        "m365": "Kein Planner: acht Pendenzen im Jahr.",
+        "outside": null
+      },
+      "knowledge": {
+        "change": "Entscheide stehen in einer Übersichtstabelle mit Link zum Protokoll.",
+        "stay": "Das Protokoll bleibt das verbindliche Dokument.",
+        "m365": "Tabelle in der Bibliothek.",
+        "outside": null
+      },
+      "attention": {
+        "change": null,
+        "stay": "Sechs Sitzungen im Jahr, dazwischen Ruhe.",
+        "m365": "Sitzungsserie im Kalender. Keine Dauerbenachrichtigungen.",
+        "outside": null
+      }
+    },
+    "picks": [
+      "cm-team",
+      "cm-documents",
+      "cm-pendenzen",
+      "cm-external"
+    ],
+    "anti": [
+      "Ein Planner-Board für acht Pendenzen im Jahr",
+      "Viele Kanäle, von denen nach zwei Sitzungen drei leer bleiben",
+      "Altmitglieder im Team lassen, «sie lesen ja nichts mehr»"
+    ]
   },
-
   "teaching-team": {
-    label: "Lehrteam",
-    shape: "Jedes Semester neu, Besetzung wechselt",
-    pattern: "cyclic",
-    footprint: "1 Team · 3 Kanäle · Studierende nicht im Team",
-    rhythm_steps: ["Vorbereitung ab Sommer", "Herbstsemester, 14 Wochen", "Bewertung", "Übergabe ans nächste Jahr"],
-    map: { outside: [], outside_label: "", external_people: [] },
-    tools: [
-      { name: "E-Mail und drei Postfächer", use: "Material und Semesterplan in mehreren Fassungen", role: "duplicate" },
-      { name: "Word und Excel", use: "Syllabus, Aufgaben, Semesterplan: jede:r hat eine eigene Fassung", role: "duplicate" },
-      { name: "Excel-Listen auf Laptops", use: "Noten parallel zum offiziellen System", role: "wrong" },
-      { name: "Postfach der Vorgängerin", use: "Das Archiv des letzten Jahres", role: "dependency" },
-      { name: "Lernplattform der Universität", use: "Studierende, Lesematerial, Forum, Bewertung", role: "specialist" }
-    ],
-    model: {
-      communication: { change: "Absprachen im Lehrteam laufen im Teamkanal statt in drei Postfächern.", stay: "Studierende erreichen das Team nur über die Lernplattform.", m365: "Ein Team, Kanäle «Allgemein», «Semester», «Bewertung».", outside: "Rückfragen der Studierenden: Forum der Lernplattform." },
-      documents: { change: "Eine Quelle im Teamordner. Die Lernplattform liefert aus.", stay: "Der gültige Syllabus liegt auf der Lernplattform.", m365: "Teamordner. Fabian ist Mitglied und sieht das Bewertungsraster nur lesend.", outside: "Noten und Einzelbewertungen: offizielles Bewertungssystem." },
-      tasks: { change: null, stay: "Eine Tabelle im Teamordner genügt für drei Personen.", m365: "Keine Planner-Struktur.", outside: null },
-      knowledge: { change: "Das Übergabedossier lebt im Team, mit einer Seite «Was ich nächstes Mal anders machen würde».", stay: "Freigegebene Unterlagen bleiben die Basis fürs nächste Jahr.", m365: "Seite im Team, Ordner pro Jahr.", outside: "Feedback der Studierenden bleibt beim Studiendekanat. Im Team nur die Zusammenfassung." },
-      attention: { change: null, stay: "Feste Semesterwochen und Sprechstunden.", m365: "Kalenderserie. Keine Chat-Erreichbarkeit der Hilfsassistenz am Abend.", outside: null }
+    "label": "Lehrteam",
+    "shape": "Jedes Semester neu, Besetzung wechselt",
+    "pattern": "cyclic",
+    "footprint": "1 Team · 3 Kanäle · Studierende nicht im Team",
+    "flow": {
+      "type": "sequence",
+      "loop": "nächstes Semester",
+      "steps": [
+        {
+          "t": "Semester vorbereiten",
+          "z": "shared",
+          "n": "ab Sommer"
+        },
+        {
+          "t": "Lehren",
+          "z": "shared",
+          "n": "14 Wochen, Studierende auf der Lernplattform"
+        },
+        {
+          "t": "Bewerten",
+          "z": "institutional",
+          "n": "Noten nur im Bewertungssystem"
+        },
+        {
+          "t": "Archivieren und verbessern",
+          "z": "shared",
+          "n": "Übergabedossier"
+        }
+      ]
     },
-    outside: ["Studierende, Abgaben, Noten: Lernplattform und Bewertungssystem", "Feedback der Studierenden: Studiendekanat"],
-    picks: ["tt-where", "tt-lms", "tt-ta-access", "tt-handover"],
-    anti: ["Pro Semester ein neues Team gründen und das alte vergessen", "Studierende in Teams holen, weil «die Plattform umständlich ist»", "Noten und Einzelbewertungen im Teamordner ablegen"]
+    "map": {
+      "outside": [],
+      "outside_label": "",
+      "external_people": [],
+      "temporary": [
+        "Gastreferierende (punktuell)"
+      ]
+    },
+    "tools": [
+      {
+        "name": "E-Mail und drei Postfächer",
+        "use": "Material und Semesterplan in mehreren Fassungen",
+        "role": "duplicate",
+        "kind": "mail"
+      },
+      {
+        "name": "Word und Excel",
+        "use": "Syllabus, Aufgaben, Semesterplan: jede:r hat eine eigene Fassung",
+        "role": "duplicate",
+        "kind": "table"
+      },
+      {
+        "name": "Excel-Listen auf Laptops",
+        "use": "Noten parallel zum offiziellen System",
+        "role": "wrong",
+        "kind": "laptop"
+      },
+      {
+        "name": "Postfach der Vorgängerin",
+        "use": "Das Archiv des letzten Jahres",
+        "role": "dependency",
+        "kind": "mail"
+      },
+      {
+        "name": "Lernplattform der Universität",
+        "use": "Studierende, Lesematerial, Forum, Bewertung",
+        "role": "specialist",
+        "kind": "building"
+      }
+    ],
+    "shifts": [
+      {
+        "from": "Material und Semesterplan in drei Postfächern",
+        "role": "duplicate",
+        "to": "Eine Quelle im Teamordner, die Lernplattform liefert aus",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "lesematerial"
+      },
+      {
+        "from": "Noten in Excel auf Laptops",
+        "role": "wrong",
+        "to": "Nur im offiziellen Bewertungssystem",
+        "zone": "institutional",
+        "kind": "move",
+        "ref": "noten"
+      },
+      {
+        "from": "Rückfragen per Mail an alle drei",
+        "role": "wrong",
+        "to": "Forum der Lernplattform",
+        "zone": "institutional",
+        "kind": "move",
+        "ref": "rueckfragen-studierende"
+      },
+      {
+        "from": "Übergabe im Postfach der Vorgängerin",
+        "role": "dependency",
+        "to": "Übergabedossier im Team",
+        "zone": "shared",
+        "kind": "move",
+        "ref": "uebergabedossier"
+      },
+      {
+        "from": "Gültiger Syllabus",
+        "role": "specialist",
+        "to": "Bleibt auf der Lernplattform",
+        "zone": "institutional",
+        "kind": "stay",
+        "ref": "syllabus"
+      }
+    ],
+    "zones": {
+      "institutional": [
+        "Lernplattform: Studierende, Abgaben, Rückfragen",
+        "Bewertungssystem: Noten und Einzelbewertungen",
+        "Studiendekanat: Feedback der Studierenden"
+      ],
+      "outside": []
+    },
+    "model": {
+      "communication": {
+        "change": "Absprachen im Lehrteam laufen im Teamkanal statt in drei Postfächern.",
+        "stay": "Studierende erreichen das Team nur über die Lernplattform.",
+        "m365": "Ein Team, Kanäle «Allgemein», «Semester», «Bewertung».",
+        "outside": "Rückfragen der Studierenden: Forum der Lernplattform."
+      },
+      "documents": {
+        "change": "Eine Quelle im Teamordner. Die Lernplattform liefert aus.",
+        "stay": "Der gültige Syllabus liegt auf der Lernplattform.",
+        "m365": "Teamordner. Fabian ist Mitglied und sieht das Bewertungsraster nur lesend.",
+        "outside": "Noten und Einzelbewertungen: offizielles Bewertungssystem."
+      },
+      "tasks": {
+        "change": null,
+        "stay": "Eine Tabelle im Teamordner genügt für drei Personen.",
+        "m365": "Keine Planner-Struktur.",
+        "outside": null
+      },
+      "knowledge": {
+        "change": "Das Übergabedossier lebt im Team, mit einer Seite «Was ich nächstes Mal anders machen würde».",
+        "stay": "Freigegebene Unterlagen bleiben die Basis fürs nächste Jahr.",
+        "m365": "Seite im Team, Ordner pro Jahr.",
+        "outside": "Feedback der Studierenden bleibt beim Studiendekanat. Im Team nur die Zusammenfassung."
+      },
+      "attention": {
+        "change": null,
+        "stay": "Feste Semesterwochen und Sprechstunden.",
+        "m365": "Kalenderserie. Keine Chat-Erreichbarkeit der Hilfsassistenz am Abend.",
+        "outside": null
+      }
+    },
+    "picks": [
+      "tt-where",
+      "tt-lms",
+      "tt-ta-access",
+      "tt-handover"
+    ],
+    "anti": [
+      "Pro Semester ein neues Team gründen und das alte vergessen",
+      "Studierende in Teams holen, weil «die Plattform umständlich ist»",
+      "Noten und Einzelbewertungen im Teamordner ablegen"
+    ]
   }
 };

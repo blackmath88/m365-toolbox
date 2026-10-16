@@ -115,6 +115,8 @@ for (const w of worlds) {
 const A = ctx.window.HE_ATLAS;
 const PATTERNS = new Set(['continuous', 'mixed', 'solo', 'periodic', 'cyclic']);
 const ROLES = new Set(['valid', 'wrong', 'duplicate', 'dependency', 'specialist']);
+const KINDS = new Set(['mail', 'calendar', 'table', 'doc', 'chat', 'list', 'people', 'folder', 'laptop', 'building', 'box']);
+const ZONES = new Set(['personal', 'shared', 'institutional', 'outside']);
 const CATS = ['communication', 'documents', 'tasks', 'knowledge', 'attention'];
 if (!isObj(A)) err('window.HE_ATLAS missing');
 else {
@@ -122,11 +124,34 @@ else {
   for (const w of worlds) {
     const a = A[w.id], X = `atlas "${w.id}"`;
     if (!a) { err(`${X}: missing`); continue; }
-    need(a, ['label', 'shape', 'pattern', 'footprint', 'rhythm_steps', 'map', 'tools', 'model', 'outside', 'picks', 'anti'], X);
+    need(a, ['label', 'shape', 'pattern', 'footprint', 'flow', 'map', 'tools', 'shifts', 'zones', 'model', 'picks', 'anti'], X);
     if (!PATTERNS.has(a.pattern)) err(`${X}: invalid pattern "${a.pattern}"`);
     const pIds = new Set(w.people.map(p => p.id));
     for (const k of ['outside', 'external_people']) for (const id of a.map?.[k] || []) if (!pIds.has(id)) err(`${X} map.${k}: unknown person "${id}"`);
-    (a.tools || []).forEach((t, i) => { need(t, ['name', 'use', 'role'], `${X} tools[${i}]`); if (!ROLES.has(t.role)) err(`${X} tools[${i}]: invalid role "${t.role}"`); });
+    (a.tools || []).forEach((t, i) => {
+      need(t, ['name', 'use', 'role', 'kind'], `${X} tools[${i}]`);
+      if (!ROLES.has(t.role)) err(`${X} tools[${i}]: invalid role "${t.role}"`);
+      if (!KINDS.has(t.kind)) err(`${X} tools[${i}]: invalid kind "${t.kind}"`);
+    });
+    const collab = new Set(Object.values(w.collaboration).flat());
+    for (const t of a.map?.temporary || []) if (!collab.has(t)) err(`${X} map.temporary: "${t}" is not in collaboration`);
+    const f = a.flow;
+    const steps = f?.type === 'overlay' ? f.overlay?.steps : f?.steps;
+    if (!['sequence', 'overlay'].includes(f?.type)) err(`${X} flow.type invalid`);
+    if (f?.type === 'overlay') need(f.base, ['label', 'text'], `${X} flow.base`);
+    if (!isArr(steps) || steps.length < 3) err(`${X} flow: needs at least 3 steps`);
+    (steps || []).forEach((g, i) => { need(g, ['t', 'z', 'n'], `${X} flow step ${i}`); if (!ZONES.has(g.z)) err(`${X} flow step ${i}: invalid zone "${g.z}"`); });
+    const shifts = a.shifts || [];
+    if (shifts.length < 3 || shifts.length > 6) err(`${X} shifts: expected 3-6, got ${shifts.length}`);
+    const artIds = new Set(w.artefacts.map(x => x.id));
+    shifts.forEach((x, i) => {
+      need(x, ['from', 'role', 'to', 'zone', 'kind', 'ref'], `${X} shifts[${i}]`);
+      if (!ROLES.has(x.role)) err(`${X} shifts[${i}]: invalid role "${x.role}"`);
+      if (!ZONES.has(x.zone)) err(`${X} shifts[${i}]: invalid zone "${x.zone}"`);
+      if (!['move', 'stay'].includes(x.kind)) err(`${X} shifts[${i}]: invalid kind "${x.kind}"`);
+      if (x.ref !== null && !artIds.has(x.ref)) err(`${X} shifts[${i}]: unknown artefact "${x.ref}"`);
+    });
+    need(a.zones, ['institutional', 'outside'], `${X} zones`);
     for (const c of CATS) need(a.model?.[c], ['change', 'stay', 'm365', 'outside'], `${X} model.${c}`);
     const dps = new Set(w.scenarios.flatMap(s => s.decision_points.map(d => d.id)));
     for (const id of a.picks || []) if (!dps.has(id)) err(`${X} picks: unknown decision "${id}"`);
