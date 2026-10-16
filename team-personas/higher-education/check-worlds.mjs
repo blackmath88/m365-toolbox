@@ -110,6 +110,29 @@ for (const w of worlds) {
   for (const k of Object.keys(th)) if (!modIds.has(k)) err(`${W} training_hooks: unknown module "${k}"`);
 }
 
+
+// ---- atlas layer (window.HE_ATLAS) ----
+const A = ctx.window.HE_ATLAS;
+const PATTERNS = new Set(['continuous', 'mixed', 'solo', 'periodic', 'cyclic']);
+const ROLES = new Set(['valid', 'wrong', 'duplicate', 'dependency', 'specialist']);
+const CATS = ['communication', 'documents', 'tasks', 'knowledge', 'attention'];
+if (!isObj(A)) err('window.HE_ATLAS missing');
+else {
+  for (const id of Object.keys(A)) if (!worlds.some(w => w.id === id)) err(`atlas: unknown world "${id}"`);
+  for (const w of worlds) {
+    const a = A[w.id], X = `atlas "${w.id}"`;
+    if (!a) { err(`${X}: missing`); continue; }
+    need(a, ['label', 'shape', 'pattern', 'footprint', 'rhythm_steps', 'map', 'tools', 'model', 'outside', 'picks', 'anti'], X);
+    if (!PATTERNS.has(a.pattern)) err(`${X}: invalid pattern "${a.pattern}"`);
+    const pIds = new Set(w.people.map(p => p.id));
+    for (const k of ['outside', 'external_people']) for (const id of a.map?.[k] || []) if (!pIds.has(id)) err(`${X} map.${k}: unknown person "${id}"`);
+    (a.tools || []).forEach((t, i) => { need(t, ['name', 'use', 'role'], `${X} tools[${i}]`); if (!ROLES.has(t.role)) err(`${X} tools[${i}]: invalid role "${t.role}"`); });
+    for (const c of CATS) need(a.model?.[c], ['change', 'stay', 'm365', 'outside'], `${X} model.${c}`);
+    const dps = new Set(w.scenarios.flatMap(s => s.decision_points.map(d => d.id)));
+    for (const id of a.picks || []) if (!dps.has(id)) err(`${X} picks: unknown decision "${id}"`);
+  }
+}
+
 for (const [sn, list] of surnames) if (list.length > 1) warn(`surname "${sn}" used ${list.length}x: ${list.join(', ')}`);
 
 console.log(`worlds: ${worlds.length}, people: ${nPeople}, artefacts: ${nArt}, scenarios: ${nSc}, decision points: ${nDp}, null fields: ${nulls}`);
