@@ -50,6 +50,7 @@
     return '<ul class="' + (cls || 'plain') + '">' + items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>';
   }
   function sizeLabel(w) { return w.size === 1 ? '1 Person' : w.size + ' Personen'; }
+  function quoted(t) { return /«/.test(t) ? esc(t) : '«' + esc(t) + '»'; }
   function stripPrefix(s) { return s.replace(/^Unsere Wahl für diesen Kontext:\s*/, ''); }
   function more(summary, body, cls) {
     return '<details class="more ' + (cls || '') + '"><summary>' + esc(summary) + '</summary><div class="more-b">' + body + '</div></details>';
@@ -148,15 +149,17 @@
 
   /* ---------- scenes: illustrative "heute" and M365 vignettes (HTML, not screenshots) ---------- */
   var TYPE_ICON = { mail: 'i-mail', chat: 'i-chat', file: 'i-doc', folder: 'i-folder', local: 'i-laptop' };
+  var PLACE = [['mail', 'Postfach'], ['chat', 'Chat'], ['file', 'Dateien'], ['local', 'Lokal'], ['folder', 'Ablage']];
   function who(w, id) {
     var p = w.people.filter(function (x) { return x.id === id; })[0];
     return p ? { name: personName(p.name), av: avatar(w.people.indexOf(p), p.name) }
              : { name: id, av: '<span class="av av-ext" aria-hidden="true">' + esc(id.charAt(0).toUpperCase()) + '</span>' };
   }
   function mk(n) { return n ? '<span class="mk" aria-hidden="true">' + n + '</span><span class="sr-only">Veränderung ' + n + ': </span>' : ''; }
+  function key(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-'); }
   function systems(list) {
     if (!list || !list.length) return '';
-    return '<p class="sc-sys"><span class="k">Verknüpft, bleibt ausserhalb</span>' + list.map(function (y) {
+    return '<p class="sc-sys"><span class="k">Bleibt ausserhalb, verlinkt</span>' + list.map(function (y) {
       return '<span class="sys">' + mk(y.mark) + icon('i-box') + esc(y.name) + '</span>';
     }).join('') + '</p>';
   }
@@ -166,38 +169,53 @@
       return '<li>' + mk(f.mark) + icon(dir ? 'i-folder' : 'i-doc') + '<span><strong>' + esc(f.name) + '</strong><span>' + esc(f.meta) + '</span></span></li>';
     }).join('') + '</ul>';
   }
+
+  /* Heute as a topology: people above, the places where work sits below, lines drawn by drawTopo(). */
   function sceneToday(w, a) {
-    var t = a.scenes.today;
+    var t = a.scenes.today, ppl = [];
+    t.items.forEach(function (it) { if (ppl.indexOf(it.who) < 0) ppl.push(it.who); });
+    var places = PLACE.filter(function (p) { return t.items.some(function (it) { return it.type === p[0]; }); });
     return '<figure class="scene sc-today"><figcaption><span class="sc-k">Heute</span>' + esc(t.title) + '</figcaption>' +
-      '<div class="sc-frame"><ul class="sc-list">' + t.items.map(function (it) {
-        var p = who(w, it.who), r = ROLE[it.role];
-        return '<li class="sc-row tone-' + r.tone + '">' + mk(it.mark) +
-          '<span class="sc-ic">' + icon(TYPE_ICON[it.type]) + '</span>' +
-          '<span class="sc-txt"><strong>' + esc(it.title) + '</strong><span>' + esc(p.name) + ' · ' + esc(it.meta) + '</span></span>' +
-          '<span class="role">' + icon(r.icon) + '<span>' + esc(r.label) + '</span></span></li>';
-      }).join('') + '</ul></div></figure>';
+      '<div class="sc-frame topo" data-topo>' +
+        '<ul class="topo-people">' + ppl.map(function (id) {
+          var p = who(w, id);
+          return '<li data-p="' + key(id) + '">' + p.av + '<span>' + esc(p.name) + '</span></li>';
+        }).join('') + '</ul>' +
+        '<div class="topo-places" style="--n:' + places.length + '">' + places.map(function (pl) {
+          return '<div class="place"><h5>' + icon(TYPE_ICON[pl[0]]) + pl[1] + '</h5><ul>' + t.items.filter(function (it) { return it.type === pl[0]; }).map(function (it) {
+            var r = ROLE[it.role];
+            return '<li class="titem tone-' + r.tone + '" data-from="' + key(it.who) + '" data-mark="' + (it.mark || '') + '" data-role="' + it.role + '">' + mk(it.mark) +
+              '<strong>' + esc(it.title) + '</strong><span class="tm"><span class="tw">' + esc(who(w, it.who).name) + ' · </span>' + esc(it.meta) + '</span>' +
+              '<span class="role">' + icon(r.icon) + esc(r.label) + '</span></li>';
+          }).join('') + '</ul></div>';
+        }).join('') + '</div>' +
+      '</div>' +
+      '<p class="topo-key" aria-hidden="true"><span class="k-ln"></span>wer womit arbeitet<span class="k-dep"></span>persönliche Abhängigkeit<span class="k-dup"></span>dasselbe doppelt</p>' +
+      '</figure>';
   }
   function sceneTarget(w, a) {
     var t = a.scenes.target, m = w.scenarios[0].m365_model;
     if (t.kind === 'personal') {
-      return '<figure class="scene sc-target sc-personal"><figcaption><span class="sc-k">M365-Arbeitsmodell</span>OneDrive und To Do</figcaption>' +
+      return '<figure class="scene sc-target sc-personal"><figcaption><span class="sc-k">M365-Arbeitsmodell</span>OneDrive und To Do, kein Team</figcaption>' +
         '<div class="sc-frame"><div class="sc-two">' +
-          '<div><h4 class="sc-h">' + icon('i-folder') + 'OneDrive · Meine Dateien</h4>' + fileRows(t.files) + '</div>' +
-          '<div><h4 class="sc-h">' + icon('i-list') + 'To Do · Meine Aufgaben</h4><ul class="sc-todo">' + t.todo.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' +
+          '<div><h4 class="sc-h">' + icon('i-folder') + 'OneDrive</h4>' + fileRows(t.files.slice(0, 3)) + '</div>' +
+          '<div><h4 class="sc-h">' + icon('i-list') + 'To Do</h4><ul class="sc-todo">' + t.todo.slice(0, 3).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' +
         '</div><p class="sc-note">' + esc(t.note) + '</p>' + systems(t.systems) + '</div></figure>';
     }
+    var core = people(w, a).core;
     var chans = '<ul class="sc-chans">' + m.channels.map(function (c) {
       return '<li' + (c === t.active ? ' class="on" aria-current="true"' : '') + '>' + esc(c) + '</li>';
     }).join('') + '</ul>';
-    var body = t.view === 'files' ? fileRows(t.files) : '<ul class="sc-posts">' + t.posts.map(function (q) {
+    var body = t.view === 'files' ? fileRows(t.files.slice(0, 3)) : '<ul class="sc-posts">' + t.posts.slice(0, 2).map(function (q) {
       var p = who(w, q.by);
-      return '<li>' + mk(q.mark) + p.av + '<div><p class="sc-meta"><strong>' + esc(p.name) + '</strong><span>' + esc(q.time) + '</span></p><p>' + esc(q.text) + '</p>' +
+      return '<li>' + mk(q.mark) + p.av + '<div><p class="sc-meta">' + esc(p.name) + '</p><p>' + esc(q.text) + '</p>' +
         (q.file ? '<span class="chip">' + icon(/\/\s*$/.test(q.file) ? 'i-folder' : 'i-doc') + esc(q.file) + '</span>' : '') + '</div></li>';
     }).join('') + '</ul>';
-    return '<figure class="scene sc-target"><figcaption><span class="sc-k">M365-Arbeitsmodell</span>Team «' + esc(m.team) + '»</figcaption>' +
+    return '<figure class="scene sc-target"><figcaption><span class="sc-k">M365-Arbeitsmodell</span>Team ' + quoted(m.team) + '</figcaption>' +
       '<div class="sc-frame sc-shell">' +
-        '<div class="sc-rail" aria-hidden="true"><i></i><i class="on"></i><i></i><i></i></div>' +
-        '<div class="sc-nav"><p class="sc-team"><span class="sc-tm" aria-hidden="true">' + esc(initials(m.team)) + '</span>' + esc(m.team) + '</p>' + chans + '</div>' +
+        '<div class="sc-nav"><p class="sc-team">' + esc(m.team) + '</p>' +
+          '<ul class="sc-members" aria-label="Mitglieder: ' + esc(core.map(function (p) { return personName(p.name); }).join(', ')) + '">' +
+            core.slice(0, 5).map(function (p) { return '<li>' + avatar(w.people.indexOf(p), p.name) + '</li>'; }).join('') + '</ul>' + chans + '</div>' +
         '<div class="sc-main"><div class="sc-top"><h4 class="sc-h">' + esc(t.active) + '</h4><p class="sc-tabs">' + t.tabs.map(function (x, i) {
           return '<span' + (i === (t.view === 'files' ? 1 : 0) ? ' class="on"' : '') + '>' + esc(x) + '</span>';
         }).join('') + '</p></div>' + body + (t.note ? '<p class="sc-note">' + esc(t.note) + '</p>' : '') + systems(t.systems) + '</div>' +
@@ -205,26 +223,73 @@
   }
   function scenePair(w, a) {
     return '<div class="scenes">' + sceneToday(w, a) +
-      '<div class="sc-arrow" aria-hidden="true">' + icon('i-arrow') + '</div>' + sceneTarget(w, a) + '</div>' +
-      '<p class="sc-cap">Illustrative Szenen mit fiktiven Personen, kein Produktbild. Die Nummern verweisen auf die Veränderungen darunter.</p>';
+      '<div class="sc-arrow" aria-hidden="true"><svg class="ic"><use href="#i-arrow-b"/></svg></div>' + sceneTarget(w, a) + '</div>' +
+      '<p class="sc-cap">Illustrative Szenen, fiktive Personen, kein Produktbild. Die Nummern führen zu den Veränderungen darunter.</p>';
   }
+
+  /* connector lines for the Heute topology; measured, so they follow the layout. Off on narrow screens (--lines:0). */
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function drawTopo(box) {
+    var old = box.querySelector('svg.topo-lines');
+    if (old) old.remove();
+    var R = box.getBoundingClientRect();
+    if (!R.width || getComputedStyle(box).getPropertyValue('--lines').trim() === '0') return;
+    var svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('class', 'topo-lines'); svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('width', R.width); svg.setAttribute('height', R.height);
+    var line = function (d, cls) { var p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', d); p.setAttribute('class', cls); svg.appendChild(p); };
+    var rel = function (r) { return { l: r.left - R.left, r: r.right - R.left, t: r.top - R.top, b: r.bottom - R.top, cx: r.left - R.left + r.width / 2, cy: r.top - R.top + r.height / 2 }; };
+    var items = [].slice.call(box.querySelectorAll('.titem'));
+    items.forEach(function (it) {
+      var who_ = box.querySelector('[data-p="' + it.getAttribute('data-from') + '"]');
+      if (!who_) return;
+      var P = rel(who_.getBoundingClientRect()), B = rel(it.getBoundingClientRect());
+      var x1 = P.r + 6, y1 = P.cy, x2 = B.l, y2 = B.t + 14, dx = Math.max(24, (x2 - x1) * .5);
+      line('M' + x1 + ' ' + y1 + ' C' + (x1 + dx) + ' ' + y1 + ' ' + (x2 - dx) + ' ' + y2 + ' ' + x2 + ' ' + y2,
+        'ln' + (it.getAttribute('data-role') === 'dependency' ? ' ln-dep' : ''));
+    });
+    /* the same thing kept twice: a dashed bracket on the right, joining the copies */
+    var byMark = {};
+    items.forEach(function (it) { var m = it.getAttribute('data-mark'); if (m && it.getAttribute('data-role') === 'duplicate') (byMark[m] = byMark[m] || []).push(it); });
+    Object.keys(byMark).forEach(function (m) {
+      var g = byMark[m].map(function (it) { return rel(it.getBoundingClientRect()); });
+      if (g.length < 2) return;
+      var x = Math.max.apply(null, g.map(function (r) { return r.r; })) + 18, d = '';
+      g.forEach(function (r) { d += 'M' + r.r + ' ' + r.cy + ' H' + x + ' '; });
+      d += 'M' + x + ' ' + g[0].cy + ' V' + g[g.length - 1].cy;
+      line(d, 'ln-dup');
+    });
+    box.insertBefore(svg, box.firstChild);
+  }
+  var topoRO = window.ResizeObserver ? new ResizeObserver(function (es) { es.forEach(function (e) { drawTopo(e.target); }); }) : null;
+  function watchTopos() {
+    app.querySelectorAll('[data-topo]').forEach(function (box) { if (topoRO) topoRO.observe(box); else drawTopo(box); });
+  }
+  if (!topoRO) window.addEventListener('resize', function () { app.querySelectorAll('[data-topo]').forEach(drawTopo); });
+
   /* tiny skeleton for the atlas cards: the five setups differ before anyone reads */
   function miniFootprint(w, a) {
     var m = w.scenarios[0].m365_model;
     if (!m) return '<div class="fpm fpm-solo" aria-hidden="true"><span class="fpm-cloud">' + icon('i-folder') + '</span><span class="fpm-todo"><i></i><i></i><i></i></span><span class="fpm-no">kein Team</span></div>';
-    return '<div class="fpm" aria-hidden="true"><span class="fpm-rail"></span><span class="fpm-ch">' +
+    return '<div class="fpm" aria-hidden="true"><span class="fpm-ch">' +
       m.channels.map(function (c, i) { return '<i' + (i === 0 ? ' class="on"' : '') + '></i>'; }).join('') + '</span>' +
       (m.planner_buckets.length || /Planner nur/.test(a.footprint) ? '<span class="fpm-pl"><i></i><i></i><i></i></span>' : '') + '</div>';
   }
 
   /* ---------- world: Vergleich (default) ---------- */
+  function countLine(shifts) {
+    var mv = shifts.filter(function (x) { return x.kind === 'move'; }).length, st = shifts.length - mv;
+    return (mv === 1 ? '1 Veränderung' : mv + ' Veränderungen') + ', ' +
+      (st === 1 ? '1 Sache, die bewusst so bleibt.' : st + ' Dinge, die bewusst so bleiben.');
+  }
   function sectionC(w, a) {
     var rows = a.shifts.map(function (x, i) {
       var r = ROLE[x.role], stay = x.kind === 'stay';
       return '<li class="shift ' + (stay ? 'is-stay' : 'is-move') + '">' +
-        '<div class="sf tone-' + r.tone + '"><p class="lbl">Heute</p><p class="s-t">' + mk(i + 1) + '<span class="sr-only">Heute: </span>' + esc(x.from) + '</p>' +
+        '<span class="sn" aria-hidden="true">' + (i + 1) + '</span>' +
+        '<div class="sf tone-' + r.tone + '"><p class="lbl">Heute</p><p class="s-t"><span class="sr-only">Veränderung ' + (i + 1) + '. Heute: </span>' + esc(x.from) + '</p>' +
           '<p class="role">' + icon(r.icon) + esc(r.label) + '</p></div>' +
-        '<div class="sa" aria-hidden="true"><svg class="ic arr"><use href="#i-arrow"/></svg><span>' + (stay ? 'bleibt' : 'ändert sich') + '</span></div>' +
+        '<div class="sa" aria-hidden="true"><svg class="ic arr"><use href="#i-arrow-b"/></svg><span>' + (stay ? 'bleibt' : 'ändert sich') + '</span></div>' +
         '<div class="st z-' + x.zone + '"><p class="lbl">' + (stay ? 'Bleibt so' : 'M365-Arbeitsmodell') + '</p>' +
           '<p class="s-t"><span class="sr-only">' + (stay ? 'Bleibt so: ' : 'Besseres Modell: ') + '</span>' + esc(x.to) + '</p>' +
           zoneBadge(x.zone) + '</div>' +
@@ -232,11 +297,11 @@
     }).join('');
 
     return '<section class="cmpv" aria-labelledby="cmp-h">' +
-      '<div class="cmp-top"><div><h2 id="cmp-h" class="cmp-h">Was ändert sich, was bleibt</h2>' +
-        '<p class="cmp-sub">' + a.shifts.filter(function (x) { return x.kind === 'move'; }).length + ' Veränderungen, ' + a.shifts.filter(function (x) { return x.kind === 'stay'; }).length + ' Dinge, die bewusst so bleiben.</p></div>' +
+      '<div class="cmp-top"><div><p class="sec-no" aria-hidden="true">Vergleich</p><h2 id="cmp-h" class="cmp-h">Was ändert sich, was bleibt</h2>' +
+        '<p class="cmp-sub">' + countLine(a.shifts) + '</p></div>' +
         '<p class="cmp-fp"><span class="k">Passendes Setup</span><strong>' + esc(a.footprint) + '</strong></p></div>' +
       scenePair(w, a) +
-      '<div class="shifts-head" aria-hidden="true"><span>Heute</span><span></span><span>M365-Arbeitsmodell</span></div>' +
+      '<div class="shifts-head" aria-hidden="true"><span></span><span>Heute</span><span></span><span>M365-Arbeitsmodell</span></div>' +
       '<ol class="shifts">' + rows + '</ol>' +
       '<p class="boundary"><span class="k">Grenze</span>' + esc(w.boundary) + '</p>' +
       '<p class="cmp-more no-print">Mehr dazu: <a href="' + href(w.id, 'heute') + '" data-view-link="heute">Arbeitswelt heute</a> · <a href="' + href(w.id, 'm365') + '" data-view-link="m365">M365-Arbeitsmodell</a></p>' +
@@ -316,7 +381,7 @@
   function sectionB(w, a) {
     var s = w.scenarios[0], m = s.m365_model, pvs = w.personal_vs_shared;
     var setup = m
-      ? '<p class="fp-big">' + esc(a.footprint) + '</p><p class="setup-lead">Team «' + esc(m.team) + '»' + (m.channels.length ? ', Kanäle: ' + esc(m.channels.join(', ')) : '') + '.</p><p>' + esc(m.notes.replace(/\s*\([a-z]+(-[a-z0-9]+)+\)/g, '')) + '</p>'
+      ? '<p class="fp-big">' + esc(a.footprint) + '</p><p class="setup-lead">Team ' + quoted(m.team) + '' + (m.channels.length ? ', Kanäle: ' + esc(m.channels.join(', ')) : '') + '.</p><p>' + esc(m.notes.replace(/\s*\([a-z]+(-[a-z0-9]+)+\)/g, '')) + '</p>'
       : '<p class="fp-big">' + esc(a.footprint) + '</p><p>Kein Team, kein Kanal. Persönliche Arbeit bleibt persönlich, gemeinsame Arbeit entsteht erst, wenn jemand mitschreibt.</p>';
 
     var zoneList = [
@@ -412,6 +477,7 @@
     document.title = w.name + ' — Arbeitswelten Hochschule';
     setHeading(document.getElementById('t'), w.name);
     wireTabs();
+    watchTopos();
   }
 
   function wireTabs() {
