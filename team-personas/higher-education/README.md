@@ -22,7 +22,8 @@ The same fictional people and working worlds should recur across modules so the 
 ## Files
 
 - `BRIEF.md` — product / content brief for implementation
-- `worlds.js` — single editable source (`window.HE_WORLDS`, loaded via `<script src>`, works offline) for the fictional higher-education universe
+- `worlds.js` — single editable source (`window.HE_WORLDS` plus the UI layer `window.HE_ATLAS` at the bottom of the file, loaded via `<script src>`, works offline) for the fictional higher-education universe
+- `index.html`, `atlas.css`, `atlas.js` — the showcase UI (open `index.html` by double-click, works offline). Atlas of five worlds; each world has `Arbeitswelt heute`, `M365-Arbeitsmodell` and (desktop) `Vergleich`. Routes: `#/`, `#/w/<world-id>[/m365|vergleich]`
 - `check-worlds.mjs` — dependency-free validator; run `node check-worlds.mjs` after editing `worlds.js`
 
 ## Implementation
